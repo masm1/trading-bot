@@ -1,5 +1,4 @@
-# ig_service.py
-
+import re
 import time
 
 try:
@@ -10,16 +9,22 @@ except ImportError:
 from config import (
     FINNHUB_API_KEY,
     IG_API_KEY,
+    IG_BASE_URL,
     IG_PASSWORD,
     IG_USERNAME,
     looks_like_placeholder,
 )
 from mapping import PRICE_SYMBOL_MAP
 
-BASE_URL = "https://demo-api.ig.com/gateway/deal"
+BASE_URL = IG_BASE_URL
 TIMEOUT = (5, 20)
 MAX_RETRIES = 3
 RETRY_BACKOFF_SECONDS = 2
+BASE_HEADERS = {
+    "Accept": "application/json; charset=UTF-8",
+    "Content-Type": "application/json; charset=UTF-8",
+    "User-Agent": "TradingBotDashboard/1.0",
+}
 
 
 class IGService:
@@ -29,33 +34,36 @@ class IGService:
         self.logged_in = False
 
     def _request_with_retry(self, method, url, **kwargs):
-        last_exception = None
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                response = self.http.request(method, url, timeout=TIMEOUT, **kwargs)
-                return response
+                return self.http.request(method, url, timeout=TIMEOUT, **kwargs)
             except requests.RequestException as exc:
-                last_exception = exc
                 if attempt < MAX_RETRIES:
                     backoff = RETRY_BACKOFF_SECONDS * attempt
-                    print(f"⚠ IG request failed (attempt {attempt}/{MAX_RETRIES}): {exc}. Retrying in {backoff}s...")
+                    print(
+                        f"IG request failed (attempt {attempt}/{MAX_RETRIES}): "
+                        f"{exc}. Retrying in {backoff}s..."
+                    )
                     time.sleep(backoff)
                     continue
-                print(f"⚠ IG request failed after {MAX_RETRIES} attempts: {exc}")
+                print(f"IG request failed after {MAX_RETRIES} attempts: {exc}")
                 raise
 
-    # ---------------- LOGIN ---------------- #
     def login(self):
         if requests is None:
-            print("⚠ requests not installed → IG disabled")
+            print("requests not installed -> IG disabled")
             return False
 
         if looks_like_placeholder(IG_API_KEY):
-            print("⚠ IG_API_KEY missing → IG disabled")
+            print("IG_API_KEY missing -> IG disabled")
+            return False
+
+        if looks_like_placeholder(IG_USERNAME) or looks_like_placeholder(IG_PASSWORD):
+            print("IG username/password missing -> IG disabled")
             return False
 
         try:
-            print("🔐 Logging into IG...")
+            print(f"Logging into IG via {BASE_URL}...")
 
             response = self._request_with_retry(
                 "POST",
@@ -64,38 +72,46 @@ class IGService:
                     "identifier": IG_USERNAME,
                     "password": IG_PASSWORD,
                 },
-                headers={
-                    "X-IG-API-KEY": IG_API_KEY,
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    "Version": "2",
-                },
+                headers=self._base_headers(
+                    {
+                        "X-IG-API-KEY": IG_API_KEY,
+                        "Version": "2",
+                    }
+                ),
             )
 
             if "text/html" in response.headers.get("Content-Type", ""):
-                print("⚠ IG HTML response → skipping IG")
+                self._print_html_diagnostic(response)
                 return False
 
             if response.status_code != 200:
-                print("⚠ IG login failed:", response.text)
+                print(f"IG login failed: status={response.status_code}")
+                print("Message:", self._safe_response_text(response))
+                return False
+
+            cst = response.headers.get("CST")
+            security_token = response.headers.get("X-SECURITY-TOKEN")
+            if not cst or not security_token:
+                print("IG login response missing security tokens")
+                print("Message:", self._safe_response_text(response))
                 return False
 
             self.session_headers = {
                 "X-IG-API-KEY": IG_API_KEY,
-                "CST": response.headers.get("CST"),
-                "X-SECURITY-TOKEN": response.headers.get("X-SECURITY-TOKEN"),
-                "Accept": "application/json",
+                "CST": cst,
+                "X-SECURITY-TOKEN": security_token,
+                "Accept": BASE_HEADERS["Accept"],
+                "User-Agent": BASE_HEADERS["User-Agent"],
             }
 
             self.logged_in = True
-            print("✅ IG login successful")
+            print("IG login successful")
             return True
 
-        except requests.RequestException as e:
-            print("⚠ IG connection error:", e)
+        except requests.RequestException as exc:
+            print("IG connection error:", exc)
             return False
 
-    # ---------------- PRICE ---------------- #
     def get_price(self, epic):
         if not self.logged_in or not epic:
             return None
@@ -111,7 +127,6 @@ class IGService:
                 return None
 
             snapshot = response.json().get("snapshot", {})
-
             bid = snapshot.get("bid")
             offer = snapshot.get("offer")
             last = snapshot.get("lastTraded")
@@ -132,7 +147,6 @@ class IGService:
 
         return self._get_finnhub_price(symbol)
 
-    # ---------------- MARKET SEARCH ---------------- #
     def search_market(self, search_term):
         if not self.logged_in or not search_term:
             return None
@@ -148,18 +162,15 @@ class IGService:
             if response.status_code != 200:
                 return None
 
-            data = response.json()
-            markets = data.get("markets") or []
+            markets = response.json().get("markets") or []
             if not markets:
                 return None
 
-            first_market = markets[0]
-            return first_market.get("epic")
+            return markets[0].get("epic")
 
         except requests.RequestException:
             return None
 
-    # ---------------- FINNHUB ---------------- #
     def _get_finnhub_price(self, symbol):
         if looks_like_placeholder(FINNHUB_API_KEY):
             return None
@@ -183,7 +194,6 @@ class IGService:
         except requests.RequestException:
             return None
 
-    # ---------------- OPEN POSITIONS ---------------- #
     def get_open_positions(self):
         if not self.logged_in:
             return []
@@ -196,6 +206,7 @@ class IGService:
             )
 
             if response.status_code != 200:
+                print(f"IG open positions failed: status={response.status_code}")
                 return []
 
             return response.json().get("positions", [])
@@ -203,7 +214,6 @@ class IGService:
         except requests.RequestException:
             return None
 
-    # ---------------- PLACE ORDER ---------------- #
     def place_demo_market_order(self, epic, direction, size):
         if not self.logged_in:
             return {"success": False, "message": "Not logged in"}
@@ -227,26 +237,24 @@ class IGService:
             )
 
             if response.status_code not in [200, 201]:
-                return {"success": False, "message": response.text}
+                return {"success": False, "message": self._safe_response_text(response)}
 
-            payload = response.json()
+            data = response.json()
             return {
                 "success": True,
-                "message": payload.get("reason", "") or payload.get("message", ""),
-                "deal_reference": payload.get("dealReference", ""),
-                "deal_id": payload.get("dealId", ""),
+                "message": data.get("reason", "") or data.get("message", ""),
+                "deal_reference": data.get("dealReference", ""),
+                "deal_id": data.get("dealId", ""),
             }
 
-        except requests.RequestException as e:
-            return {"success": False, "message": str(e)}
+        except requests.RequestException as exc:
+            return {"success": False, "message": str(exc)}
 
-    # ---------------- CLOSE POSITION ---------------- #
     def close_demo_position(self, deal_id, direction, size):
         if not self.logged_in:
             return {"success": False}
 
         close_direction = "SELL" if direction == "BUY" else "BUY"
-
         payload = {
             "dealId": deal_id,
             "direction": close_direction,
@@ -268,22 +276,56 @@ class IGService:
             if response.status_code not in [200, 201]:
                 return {
                     "success": False,
-                    "message": response.text,
+                    "message": self._safe_response_text(response),
                     "deal_reference": "",
                 }
 
-            payload = response.json()
+            data = response.json()
             return {
                 "success": True,
-                "message": payload.get("reason", "") or payload.get("message", ""),
-                "deal_reference": payload.get("dealReference", ""),
+                "message": data.get("reason", "") or data.get("message", ""),
+                "deal_reference": data.get("dealReference", ""),
             }
 
-        except requests.RequestException as e:
-            return {"success": False, "message": str(e), "deal_reference": ""}
+        except requests.RequestException as exc:
+            return {"success": False, "message": str(exc), "deal_reference": ""}
 
-    # ---------------- HEADERS ---------------- #
     def _headers(self, version):
         headers = dict(self.session_headers)
         headers["Version"] = version
         return headers
+
+    def _base_headers(self, extra=None):
+        headers = dict(BASE_HEADERS)
+        if extra:
+            headers.update(extra)
+        return headers
+
+    def _print_html_diagnostic(self, response):
+        print(
+            "IG returned HTML instead of JSON "
+            f"(status={response.status_code}, content-type={response.headers.get('Content-Type', '')})"
+        )
+        text = self._safe_response_text(response)
+        title = self._html_title(text)
+        if title:
+            print("HTML title:", title)
+        if text:
+            print("HTML preview:", text[:300])
+        print(
+            "Likely causes: wrong demo/live endpoint, API access disabled, "
+            "invalid credentials/API key, or IG blocking/challenging this server IP."
+        )
+
+    def _safe_response_text(self, response):
+        text = response.text or ""
+        for secret in [IG_API_KEY, IG_USERNAME, IG_PASSWORD, FINNHUB_API_KEY]:
+            if secret:
+                text = text.replace(secret, "[REDACTED]")
+        return re.sub(r"\s+", " ", text).strip()
+
+    def _html_title(self, text):
+        match = re.search(r"<title[^>]*>(.*?)</title>", text, flags=re.IGNORECASE | re.DOTALL)
+        if not match:
+            return ""
+        return re.sub(r"\s+", " ", match.group(1)).strip()

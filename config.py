@@ -53,6 +53,7 @@ def looks_like_placeholder(value):
 IG_API_KEY = get_env("IG_API_KEY")
 IG_USERNAME = get_env("IG_USERNAME")
 IG_PASSWORD = get_env("IG_PASSWORD")
+IG_BASE_URL = get_env("IG_BASE_URL", "https://demo-api.ig.com/gateway/deal").rstrip("/")
 FINNHUB_API_KEY = get_env("FINNHUB_API_KEY")
 PAPER_TRADING = get_env("PAPER_TRADING", "true").lower() == "true"
 AUTO_DEMO_TRADING = get_env("AUTO_DEMO_TRADING", "false").lower() == "true"
