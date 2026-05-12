@@ -1,0 +1,7 @@
+symbol,search_term,direction,size,active,notes
+BTC,Bitcoin,BUY,0.01,no,Enable only when you want one small demo trade.
+ETH,Ethereum,BUY,0.1,no,Ethereum demo example. Size may need adjustment.
+OIL,US Crude,BUY,1,no,Oil example. Size may need adjustment for IG rules.
+GOLD,Gold,BUY,1,no,Gold example. Size may need adjustment for IG rules.
+SILVER,Silver,BUY,1,no,Silver example. Size may need adjustment for IG rules.
+AAPL,AAPL,BUY,1,no,Stock example. IG EPIC availability depends on your account.

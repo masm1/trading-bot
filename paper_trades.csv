@@ -1,0 +1,151 @@
+timestamp,symbol,signal,paper_action,base_price,current_price,change_percent,notes
+2026-05-10 02:38:50.158080,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:38:50.460930,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:38:50.758436,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:38:51.056384,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:38:51.364409,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:38:51.662466,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:38:51.969330,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:38:52.281144,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80861.82,80845.84,-0.02,Paper trade idea only. No real order placed.
+2026-05-10 02:38:52.581358,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2330.83,2330.38,-0.02,Paper trade idea only. No real order placed.
+2026-05-10 02:40:13.610762,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:13.901925,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:14.202304,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:14.491242,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:14.831851,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:15.144978,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:15.494919,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:15.797900,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,80852.76,80852.77,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:16.075429,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2330.64,2330.64,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:49.289031,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80852.76,80852.76,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:40:49.607690,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,2330.64,2330.65,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:57.420915,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:57.722967,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:58.022489,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:58.327029,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:58.625061,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:58.942162,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:59.269490,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 02:59:59.582150,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,80803.47,80809.54,0.01,Paper trade idea only. No real order placed.
+2026-05-10 02:59:59.891996,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2330.48,2330.48,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:00:34.354429,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,2330.48,2330.49,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:05:37.482885,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80803.47,80793,-0.01,Paper trade idea only. No real order placed.
+2026-05-10 03:12:26.224907,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:12:26.516585,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:12:26.819090,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:12:27.108934,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:12:27.391755,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:12:27.684486,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:12:28.015525,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:12:28.366366,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,80774.83,80792,0.02,Paper trade idea only. No real order placed.
+2026-05-10 03:12:28.658379,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,2330.31,2330.91,0.03,Paper trade idea only. No real order placed.
+2026-05-10 03:13:01.127663,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80774.83,80772.21,-0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:13:34.045885,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2330.31,2329.48,-0.04,Paper trade idea only. No real order placed.
+2026-05-10 03:19:25.643367,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:19:25.968709,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:19:26.285638,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:19:26.585414,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:19:26.883608,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:19:27.194070,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:19:27.489284,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:19:27.777124,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,80768.51,80783.77,0.02,Paper trade idea only. No real order placed.
+2026-05-10 03:19:28.070053,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,2329.14,2330.59,0.06,Paper trade idea only. No real order placed.
+2026-05-10 03:22:08.210468,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80768.51,80764.68,-0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:29:58.436559,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:29:58.717831,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:29:59.050269,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:29:59.382309,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:29:59.690520,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:29:59.996988,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:30:00.285829,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:30:00.612412,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80784.17,80780.82,-0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:30:00.973825,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2331,2330.81,-0.01,Paper trade idea only. No real order placed.
+2026-05-10 03:30:35.056094,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,80784.17,80797.32,0.02,Paper trade idea only. No real order placed.
+2026-05-10 03:30:35.362932,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,2331,2331.37,0.02,Paper trade idea only. No real order placed.
+2026-05-10 03:36:54.781663,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:55.054742,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:55.334331,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:55.677236,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:55.975615,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:56.281273,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:56.568256,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:56.858085,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80760.54,80756.83,-0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:36:57.139800,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2330.65,2330.16,-0.02,Paper trade idea only. No real order placed.
+2026-05-10 03:38:27.498848,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:38:27.833822,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:38:28.136042,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:38:28.443664,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:38:28.729830,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:38:29.022158,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:38:29.303586,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:38:29.592198,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80758.99,80753.58,-0.01,Paper trade idea only. No real order placed.
+2026-05-10 03:38:29.875343,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2330.65,2330.16,-0.02,Paper trade idea only. No real order placed.
+2026-05-10 03:42:26.580901,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,80758.99,80762.05,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:09.613151,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:09.907413,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:10.202681,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:10.518019,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:10.826678,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:11.176656,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:11.516669,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:46:11.824157,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,80753.17,80759.78,0.01,Paper trade idea only. No real order placed.
+2026-05-10 03:46:12.115271,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,2330.21,2330.57,0.02,Paper trade idea only. No real order placed.
+2026-05-10 03:50:34.203046,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:34.503313,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:34.791736,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:35.092994,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:35.398306,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:35.686126,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:35.991126,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:36.281195,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80773.69,80773.68,-0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:50:36.579524,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup,2331.23,2331.36,0.01,Paper trade idea only. No real order placed.
+2026-05-10 03:52:51.180545,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2331.23,2331.21,-0.0,Paper trade idea only. No real order placed.
+2026-05-10 03:55:35.554443,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:35.842087,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:36.129813,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:36.417233,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:36.711555,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:37.017232,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:37.293263,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:37.580983,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80772.89,80772.89,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:55:37.871534,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup (Low confidence: 50.0%),2331.05,2331.17,0.01,Paper trade idea only. Quality: 0.50
+2026-05-10 03:56:10.327321,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup (Low confidence: 50.0%),80772.89,80772.9,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:15.977194,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2331.05,2331.05,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:51.927617,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:52.265272,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:52.571352,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:52.863800,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:53.158351,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:53.447755,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:53.749803,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:54.041572,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80772.9,80772.89,-0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:57:54.355492,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2331.05,2331.05,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:24.975667,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:25.267185,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:25.561216,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:25.917030,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:26.264447,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:26.665849,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:27.052624,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:27.853043,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup (Low confidence: 50.0%),80772.89,80781.15,0.01,Paper trade idea only. Quality: 0.50
+2026-05-10 03:58:28.140979,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup (Low confidence: 50.0%),2331.05,2331.1,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:52.085873,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:52.382110,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:52.744392,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:53.044012,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:53.348567,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:53.655093,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:53.948666,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:54.238244,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80781.16,80781.16,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 03:59:54.549088,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2331.1,2331.1,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:29.799126,AAPL,NO_SIGNAL,PAPER EVALUATION: no trade signal,293.32,293.32,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:30.082171,MSFT,NO_SIGNAL,PAPER EVALUATION: no trade signal,415.12,415.12,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:30.377455,TSLA,NO_SIGNAL,PAPER EVALUATION: no trade signal,428.35,428.35,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:30.711108,NVDA,NO_SIGNAL,PAPER EVALUATION: no trade signal,215.2,215.2,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:31.000601,META,NO_SIGNAL,PAPER EVALUATION: no trade signal,609.63,609.63,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:31.341017,AMZN,NO_SIGNAL,PAPER EVALUATION: no trade signal,272.68,272.68,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:31.634562,GOOGL,NO_SIGNAL,PAPER EVALUATION: no trade signal,400.8,400.8,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:31.947187,BTC,NO_SIGNAL,PAPER EVALUATION: no trade signal,80743.25,80743.25,0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:08:32.253800,ETH,NO_SIGNAL,PAPER EVALUATION: no trade signal,2330.89,2330.88,-0.0,Paper trade idea only. Quality: 0.50
+2026-05-10 04:09:05.724388,BTC,POP_FADE,PAPER IDEA: watch for pop-and-fade setup (Low confidence: 50.0%),80743.25,80753.73,0.01,Paper trade idea only. Quality: 0.50
+2026-05-10 04:09:06.001237,ETH,POP_FADE,PAPER IDEA: watch for pop-and-fade setup (Low confidence: 50.0%),2330.89,2331.21,0.01,Paper trade idea only. Quality: 0.50

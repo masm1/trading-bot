@@ -1,0 +1,4 @@
+timestamp,instrument,epic,direction,size,open_level,current_price,profit_loss,currency,deal_id
+2026-05-13 02:47:40+00:00,5-Year T-Note Decimalised ($2),IR.D.05YEAR100.FWM2.IP,SELL,10.0,10737.7,10736.7,10.0,USD,DIAAAAXF6Q7HMAJ
+2026-05-13 02:47:40+00:00,No Lead Gasoline ($4.20),CC.D.RB.UNC.IP,BUY,1.0,37065.0,36723.0,-342.0,USD,DIAAAAXF6Q7L9AJ
+2026-05-13 02:47:40+00:00,Wall Street Cash ($1),IX.D.DOW.BMU.IP,BUY,10.0,49756.1,49761.4,53.0,USD,DIAAAAXF6Q7QQAJ

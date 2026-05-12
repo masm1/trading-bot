@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#101418">
+  <title>Trading Bot Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">TB</span>
+        <div>
+          <p class="eyebrow">Live Demo Trading</p>
+          <h1>Trading Bot Dashboard</h1>
+        </div>
+      </div>
+      <div>
+        <button id="refreshButton" class="refresh-button" type="button" title="Refresh dashboard">
+          <span class="refresh-icon" aria-hidden="true"></span>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <section class="ticker-tape" aria-label="Watchlist price ticker">
+      <div class="ticker-label">Market Tape</div>
+      <div class="ticker-window">
+        <div class="ticker-track" id="priceTicker"></div>
+      </div>
+    </section>
+
+    <section class="overview">
+      <div class="metric-card metric-net">
+        <span class="metric-label">Net P/L</span>
+        <strong id="netPl">${{ "%.2f"|format(data.net_pl) }}</strong>
+        <small id="winRate">{{ "%.1f"|format(data.win_rate) }}% win rate</small>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Open Positions</span>
+        <strong id="positionCount">{{ data.positions|length }}</strong>
+        <small>live IG snapshots</small>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Watchlist</span>
+        <strong id="watchlistCount">{{ data.watchlist_count }}</strong>
+        <small>active earnings names</small>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Demo Orders</span>
+        <strong id="demoOrderCount">{{ data.demo_order_count }}</strong>
+        <small>orders and closes</small>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Bot Status</span>
+        <strong id="botStatusTime">{{ data.bot_status.timestamp or "-" }}</strong>
+        <small id="botStatusMessage">{{ data.bot_status.message }}</small>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Last Update</span>
+        <strong id="lastUpdate">{{ data.last_update }}</strong>
+        <small id="tradeLogCount">{{ data.trade_log_count }} log rows</small>
+      </div>
+    </section>
+
+    <div class="service-status" id="serviceStatus">{{ data.ig_status }}</div>
+
+    <main>
+      <section class="timeline-panel">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Session Map</p>
+            <h2>Earnings Stage Flow</h2>
+          </div>
+        </div>
+        <div class="stage-flow" id="stageFlow"></div>
+      </section>
+
+      <section class="analytics-grid">
+        <div class="chart-panel">
+          <div class="sectionHeader">
+            <div>
+              <p class="eyebrow">Performance</p>
+              <h2>Cumulative P/L</h2>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="plChart"></canvas>
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <div class="sectionHeader">
+            <div>
+              <p class="eyebrow">Risk & Quality</p>
+              <h2>Trade Metrics</h2>
+            </div>
+          </div>
+          <div class="pl-summary" id="plSummary">
+            <div><span>Total Profit</span><strong>${{ "%.2f"|format(data.total_profit) }}</strong></div>
+            <div><span>Total Loss</span><strong>${{ "%.2f"|format(data.total_loss) }}</strong></div>
+            <div><span>Sharpe</span><strong>{{ "%.2f"|format(data.sharpe_ratio) }}</strong></div>
+            <div><span>Drawdown</span><strong>${{ "%.2f"|format(data.max_drawdown) }}</strong></div>
+            <div><span>Winning</span><strong>{{ data.winning_trades }}</strong></div>
+            <div><span>Losing</span><strong>{{ data.losing_trades }}</strong></div>
+            <div><span>Avg Profit</span><strong>${{ "%.2f"|format(data.avg_profit) }}</strong></div>
+            <div><span>Avg Loss</span><strong>${{ "%.2f"|format(data.avg_loss) }}</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Earnings Queue</p>
+            <h2>Active Watchlist</h2>
+          </div>
+          <div class="section-actions">
+            <button class="segmented-control active" type="button" data-filter-target="watchlist" data-filter-value="all">All</button>
+            <button class="segmented-control" type="button" data-filter-target="watchlist" data-filter-value="CHECK">Checks</button>
+            <button class="segmented-control" type="button" data-filter-target="watchlist" data-filter-value="EVENT_COMPLETE">Done</button>
+            <span class="count-pill" id="watchlistPill">{{ data.watchlist_count }}</span>
+          </div>
+        </div>
+        <div class="tableWrap watchlist-scroll" id="watchlistScroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Earnings Time</th>
+                <th>Stage</th>
+                <th>Minutes</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="watchlistBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Portfolio</p>
+            <h2>Open Demo Positions</h2>
+          </div>
+          <span class="count-pill" id="openPositionPill">{{ data.positions|length }}</span>
+      </div>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Instrument</th>
+              <th>Direction</th>
+              <th>Size</th>
+              <th>Open</th>
+              <th>Current</th>
+              <th>P/L</th>
+              <th>Currency</th>
+            </tr>
+          </thead>
+          <tbody id="positionsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="sectionHeader">
+        <div>
+          <p class="eyebrow">History</p>
+          <h2>Closed Demo Positions</h2>
+        </div>
+      </div>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Instrument</th>
+              <th>Direction</th>
+              <th>Size</th>
+              <th>Open</th>
+              <th>Close</th>
+              <th>Final P/L</th>
+              <th>Currency</th>
+            </tr>
+          </thead>
+          <tbody id="closedPositionsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="section">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Signals</p>
+            <h2>Paper Trade Ideas</h2>
+          </div>
+          <span class="count-pill" id="paperTradeCount">{{ data.paper_trade_count }}</span>
+        </div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Symbol</th>
+                <th>Signal</th>
+                <th>Idea</th>
+                <th>Change</th>
+              </tr>
+            </thead>
+            <tbody id="paperTradesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Execution</p>
+            <h2>Demo Orders</h2>
+          </div>
+        </div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Symbol</th>
+                <th>Direction</th>
+                <th>Size</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="demoOrdersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+      <section class="section">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Activity</p>
+            <h2>Trade Log</h2>
+          </div>
+          <div class="section-actions">
+            <button class="segmented-control active" type="button" data-filter-target="activity" data-filter-value="all">All</button>
+            <button class="segmented-control" type="button" data-filter-target="activity" data-filter-value="DEMO">Orders</button>
+            <button class="segmented-control" type="button" data-filter-target="activity" data-filter-value="SIGNAL">Signals</button>
+          </div>
+        </div>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Symbol</th>
+              <th>Event</th>
+              <th>Signal</th>
+              <th>Current</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tradeLogBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  </div>
+
+  <script>
+    window.initialData = {{ data|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed'));
+    }
+  </script>
+</body>
+</html>
