@@ -181,6 +181,40 @@ After the test, turn it off again:
 AUTO_DEMO_TRADING=false
 ```
 
+## Optional Market-Open Auto Signals
+
+To let the bot watch a small share list at the regular US market open and place up to three IG demo trades from the strongest signals, edit `.env`:
+
+```text
+MARKET_OPEN_AUTO_MODE=true
+AUTO_SIGNAL_DEMO_TRADING=true
+MAX_SIGNAL_DEMO_TRADES_PER_ROUND=3
+SIGNAL_DEMO_NOTIONAL_USD=500
+MIN_SIGNAL_QUALITY=0.6
+MARKET_OPEN_TIMEZONE=America/New_York
+MARKET_OPEN_TIME=09:30
+MARKET_OPEN_BASE_MINUTES=5
+MARKET_OPEN_CHECK_START_MINUTES=15
+MARKET_OPEN_CHECK_END_MINUTES=90
+```
+
+Then edit:
+
+```text
+market_open_watchlist.csv
+```
+
+Use exactly three active shares if you only want three shares considered:
+
+```text
+symbol,active,notes
+AAPL,yes,Market open auto candidate
+MSFT,yes,Market open auto candidate
+NVDA,yes,Market open auto candidate
+```
+
+The bot saves base prices during the first few minutes after open, checks signals from 15 to 90 minutes after open, ranks eligible signals, and sends no more than `MAX_SIGNAL_DEMO_TRADES_PER_ROUND` demo orders.
+
 Open demo positions are checked every bot cycle. If `AUTO_CLOSE_DEMO_POSITIONS=true`, the bot tries to close a demo position when:
 
 ```text
