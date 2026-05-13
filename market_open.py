@@ -73,6 +73,13 @@ def describe_market_open_clock(now=None):
     return market_now.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
+def minutes_from_market_open(now=None):
+    market_now = _market_now(now)
+    open_time = _parse_market_open_time()
+    market_open = datetime.combine(market_now.date(), open_time, tzinfo=market_now.tzinfo)
+    return int((market_now - market_open).total_seconds() / 60)
+
+
 def _market_now(now=None):
     try:
         tz = ZoneInfo(MARKET_OPEN_TIMEZONE)

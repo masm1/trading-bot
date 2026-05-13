@@ -48,7 +48,7 @@
       <div class="metric-card">
         <span class="metric-label">Watchlist</span>
         <strong id="watchlistCount">{{ data.watchlist_count }}</strong>
-        <small>active earnings names</small>
+        <small id="watchlistMode">{{ data.watchlist_mode }} names</small>
       </div>
       <div class="metric-card">
         <span class="metric-label">Demo Orders</span>
@@ -74,7 +74,7 @@
         <div class="sectionHeader">
           <div>
             <p class="eyebrow">Session Map</p>
-            <h2>Earnings Stage Flow</h2>
+            <h2 id="stageFlowTitle">{{ data.watchlist_mode }} Stage Flow</h2>
           </div>
         </div>
         <div class="stage-flow" id="stageFlow"></div>
@@ -116,7 +116,7 @@
       <section class="section">
         <div class="sectionHeader">
           <div>
-            <p class="eyebrow">Earnings Queue</p>
+            <p class="eyebrow" id="watchlistEyebrow">{{ data.watchlist_mode }} Queue</p>
             <h2>Active Watchlist</h2>
           </div>
           <div class="section-actions">
@@ -131,7 +131,7 @@
             <thead>
               <tr>
                 <th>Symbol</th>
-                <th>Earnings Time</th>
+                <th id="watchTimeHeader">{{ data.watchlist_time_label }}</th>
                 <th>Stage</th>
                 <th>Minutes</th>
                 <th>Notes</th>

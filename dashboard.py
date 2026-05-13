@@ -26,7 +26,12 @@ from apscheduler.triggers.interval import IntervalTrigger
 from ig_service import IGService
 from demo_trader import run_demo_trade_plan
 from watchlist import get_event_stage, load_watchlist
-from config import FINNHUB_API_KEY, looks_like_placeholder
+from market_open import (
+    get_market_open_stage,
+    load_market_open_watchlist,
+    minutes_from_market_open,
+)
+from config import FINNHUB_API_KEY, MARKET_OPEN_AUTO_MODE, MARKET_OPEN_TIME, looks_like_placeholder
 from mapping import PRICE_SYMBOL_MAP
 
 from logger import (
@@ -296,12 +301,12 @@ def paper_trade_watch_rows(watchlist_rows, limit=6):
     rows = []
     for item in watchlist_rows:
         stage = item.get("stage", "")
-        if stage == "EVENT_COMPLETE":
+        if stage in ["EVENT_COMPLETE", "MARKET_OPEN_WINDOW_COMPLETE"]:
             continue
 
         rows.append(
             {
-                "timestamp": item.get("earnings_datetime", ""),
+                "timestamp": item.get("watch_time", ""),
                 "symbol": item.get("symbol", ""),
                 "signal": "WATCHING",
                 "paper_action": f"Waiting for {stage.replace('_', ' ').title()} before CALL/PUT idea",
@@ -361,13 +366,36 @@ def dashboard_watchlist(limit=50):
     now = datetime.now()
     rows = []
 
+    if MARKET_OPEN_AUTO_MODE:
+        stage = get_market_open_stage(now)
+        minutes_from_open = minutes_from_market_open(now)
+        for item in load_market_open_watchlist():
+            rows.append(
+                {
+                    "symbol": item.symbol,
+                    "watch_time": MARKET_OPEN_TIME,
+                    "stage": stage,
+                    "minutes_from_event": minutes_from_open,
+                    "notes": item.notes,
+                }
+            )
+
+        rows.sort(
+            key=lambda row: (
+                row["stage"] == "MARKET_OPEN_WINDOW_COMPLETE",
+                abs(row["minutes_from_event"]),
+                row["symbol"],
+            )
+        )
+        return rows[:limit]
+
     for item in load_watchlist():
         stage = get_event_stage(item, now)
         minutes_from_event = int((now - item.earnings_datetime).total_seconds() / 60)
         rows.append(
             {
                 "symbol": item.symbol,
-                "earnings_datetime": item.earnings_datetime.strftime("%Y-%m-%d %H:%M"),
+                "watch_time": item.earnings_datetime.strftime("%Y-%m-%d %H:%M"),
                 "stage": stage,
                 "minutes_from_event": minutes_from_event,
                 "notes": item.notes,
@@ -385,14 +413,22 @@ def dashboard_watchlist(limit=50):
 
 
 def watchlist_stage_summary(rows):
-    buckets = [
-        ("Waiting", "WAITING_FOR_T_MINUS_15"),
-        ("Base Window", "SAVE_BASE_PRICE"),
-        ("Check +15", "CHECK_T_PLUS_15"),
-        ("Check +30", "CHECK_T_PLUS_30"),
-        ("Check +45", "CHECK_T_PLUS_45"),
-        ("Complete", "EVENT_COMPLETE"),
-    ]
+    if MARKET_OPEN_AUTO_MODE:
+        buckets = [
+            ("Waiting", "WAITING_FOR_MARKET_OPEN"),
+            ("Base Window", "SAVE_BASE_PRICE"),
+            ("Signal Window", "CHECK_MARKET_OPEN_SIGNAL"),
+            ("Complete", "MARKET_OPEN_WINDOW_COMPLETE"),
+        ]
+    else:
+        buckets = [
+            ("Waiting", "WAITING_FOR_T_MINUS_15"),
+            ("Base Window", "SAVE_BASE_PRICE"),
+            ("Check +15", "CHECK_T_PLUS_15"),
+            ("Check +30", "CHECK_T_PLUS_30"),
+            ("Check +45", "CHECK_T_PLUS_45"),
+            ("Complete", "EVENT_COMPLETE"),
+        ]
     return [
         {
             "label": label,
@@ -644,6 +680,8 @@ def dashboard_data():
         "paper_trade_count": len(paper_trades),
         "demo_order_count": live_log_count(DEMO_ORDERS_FILE),
         "watchlist_count": len(watchlist_rows),
+        "watchlist_mode": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings",
+        "watchlist_time_label": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings Time",
         "ig_status": get_dashboard_status("ig_status") or "",
         "bot_status": bot_status_details(bot_heartbeat),
         "watchlist_stage_summary": stage_summary,

@@ -18,6 +18,10 @@ const demoOrderCountEl = document.getElementById("demoOrderCount");
 const watchlistCountEl = document.getElementById("watchlistCount");
 const watchlistPill = document.getElementById("watchlistPill");
 const watchlistScroll = document.getElementById("watchlistScroll");
+const watchlistModeEl = document.getElementById("watchlistMode");
+const watchlistEyebrowEl = document.getElementById("watchlistEyebrow");
+const stageFlowTitleEl = document.getElementById("stageFlowTitle");
+const watchTimeHeaderEl = document.getElementById("watchTimeHeader");
 const botStatusTimeEl = document.getElementById("botStatusTime");
 const botStatusMessageEl = document.getElementById("botStatusMessage");
 const serviceStatusEl = document.getElementById("serviceStatus");
@@ -235,6 +239,9 @@ function filterWatchlistRows(rows) {
   if (filter === "CHECK") {
     return rows.filter((row) => text(row.stage).startsWith("CHECK"));
   }
+  if (filter === "EVENT_COMPLETE") {
+    return rows.filter((row) => ["EVENT_COMPLETE", "MARKET_OPEN_WINDOW_COMPLETE"].includes(row.stage));
+  }
   return rows.filter((row) => row.stage === filter);
 }
 
@@ -311,6 +318,10 @@ function render(data) {
   if (demoOrderCountEl) demoOrderCountEl.textContent = data.demo_order_count ?? 0;
   if (watchlistCountEl) watchlistCountEl.textContent = data.watchlist_count ?? 0;
   if (watchlistPill) watchlistPill.textContent = data.watchlist_count ?? 0;
+  if (watchlistModeEl) watchlistModeEl.textContent = `${data.watchlist_mode || "Watchlist"} names`;
+  if (watchlistEyebrowEl) watchlistEyebrowEl.textContent = `${data.watchlist_mode || "Watchlist"} Queue`;
+  if (stageFlowTitleEl) stageFlowTitleEl.textContent = `${data.watchlist_mode || "Watchlist"} Stage Flow`;
+  if (watchTimeHeaderEl) watchTimeHeaderEl.textContent = data.watchlist_time_label || "Watch Time";
   if (botStatusTimeEl) botStatusTimeEl.textContent = data.bot_status?.timestamp || "-";
   if (botStatusMessageEl) botStatusMessageEl.textContent = data.bot_status?.message || "No bot heartbeat yet.";
   if (botStatusTimeEl) {
@@ -332,7 +343,7 @@ function render(data) {
     filterWatchlistRows(data.watchlist || []),
     [
       { key: "symbol" },
-      { key: "earnings_datetime" },
+      { key: "watch_time" },
       { key: "stage", render: badge },
       { key: "minutes_from_event", format: signedMinutes },
       { key: "notes" },
