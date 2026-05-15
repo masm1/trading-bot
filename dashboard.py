@@ -24,14 +24,22 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from ig_service import IGService
-from demo_trader import run_demo_trade_plan
+from demo_trader import place_top_signal_orders, print_open_positions, run_demo_trade_plan
+from tracker import PriceTracker
 from watchlist import get_event_stage, load_watchlist
 from market_open import (
     get_market_open_stage,
     load_market_open_watchlist,
     minutes_from_market_open,
 )
-from config import FINNHUB_API_KEY, MARKET_OPEN_AUTO_MODE, MARKET_OPEN_TIME, looks_like_placeholder
+from config import (
+    AUTO_DEMO_TRADING,
+    AUTO_SIGNAL_DEMO_TRADING,
+    FINNHUB_API_KEY,
+    MARKET_OPEN_AUTO_MODE,
+    MARKET_OPEN_TIME,
+    looks_like_placeholder,
+)
 from mapping import PRICE_SYMBOL_MAP
 
 from logger import (
@@ -71,12 +79,13 @@ EPIC_MAP = {
 
 # Global IG service instance
 ig_service = None
+price_tracker = None
 scheduler = BackgroundScheduler()
 
 
 def run_trading_cycle():
     """Run one cycle of trading operations."""
-    global ig_service
+    global ig_service, price_tracker
 
     try:
         if ig_service is None:
@@ -87,8 +96,20 @@ def run_trading_cycle():
 
         print("🔄 Running trading cycle...")
 
-        # Run demo trader
-        run_demo_trade_plan(ig_service)
+        if price_tracker is None:
+            price_tracker = PriceTracker(ig_service)
+
+        if AUTO_DEMO_TRADING:
+            run_demo_trade_plan(ig_service)
+
+        if AUTO_SIGNAL_DEMO_TRADING:
+            signal_candidates = run_dashboard_signal_cycle(price_tracker)
+            place_top_signal_orders(ig_service, signal_candidates)
+
+        try:
+            print_open_positions(ig_service)
+        except Exception as exc:
+            print(f"Position refresh skipped: {exc}")
 
         print("✅ Trading cycle completed")
 
@@ -98,10 +119,8 @@ def run_trading_cycle():
 
 def start_trading_scheduler():
     """Start the background trading scheduler."""
-    from config import AUTO_DEMO_TRADING
-
-    if not AUTO_DEMO_TRADING:
-        print("⚠ Auto demo trading is disabled")
+    if not AUTO_DEMO_TRADING and not AUTO_SIGNAL_DEMO_TRADING:
+        print("Auto trading is disabled")
         return
 
     print("🚀 Starting trading scheduler (runs every 5 minutes)...")
@@ -113,6 +132,40 @@ def start_trading_scheduler():
         replace_existing=True
     )
     scheduler.start()
+
+
+def run_dashboard_signal_cycle(tracker):
+    now = datetime.now()
+
+    if MARKET_OPEN_AUTO_MODE:
+        stage = get_market_open_stage(now)
+        print(f"Market-open signal cycle stage: {stage}")
+        signal_candidates = []
+
+        for item in load_market_open_watchlist():
+            symbol = item.symbol
+            if stage == "SAVE_BASE_PRICE":
+                tracker.save_base_price(symbol)
+            elif stage == "CHECK_MARKET_OPEN_SIGNAL":
+                signal_info = tracker.check_signal(symbol)
+                if signal_info:
+                    signal_candidates.append(signal_info)
+
+        return signal_candidates
+
+    signal_candidates = []
+    for item in load_watchlist():
+        symbol = item.symbol
+        stage = get_event_stage(item, now)
+
+        if stage == "SAVE_BASE_PRICE":
+            tracker.save_base_price(symbol)
+        elif stage.startswith("CHECK"):
+            signal_info = tracker.check_signal(symbol)
+            if signal_info:
+                signal_candidates.append(signal_info)
+
+    return signal_candidates
 
 
 def calculate_sharpe_ratio(pl_values):
