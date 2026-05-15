@@ -735,6 +735,12 @@ def dashboard_data():
         "watchlist_count": len(watchlist_rows),
         "watchlist_mode": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings",
         "watchlist_time_label": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings Time",
+        "config_status": {
+            "market_open_auto_mode": MARKET_OPEN_AUTO_MODE,
+            "auto_signal_demo_trading": AUTO_SIGNAL_DEMO_TRADING,
+            "auto_demo_trading": AUTO_DEMO_TRADING,
+            "market_open_time": MARKET_OPEN_TIME,
+        },
         "ig_status": get_dashboard_status("ig_status") or "",
         "bot_status": bot_status_details(bot_heartbeat),
         "watchlist_stage_summary": stage_summary,
