@@ -1,7 +1,8 @@
 from datetime import datetime
 
+from db import fetch_latest_rows
 from logger import log_event, log_paper_trade
-from mapping import EPIC_MAP, PRICE_SYMBOL_MAP
+from mapping import EPIC_MAP
 from strategy import detect_signal, paper_action_for_signal
 
 
@@ -12,15 +13,12 @@ class PriceTracker:
         self.failed_symbols = {}
         self.logged_signals = set()
 
-    # ---------------- BASE PRICE ---------------- #
     def save_base_price(self, symbol):
         epic = EPIC_MAP.get(symbol)
-
         price = self.ig.get_price_for_symbol(symbol, epic)
 
         if price is None:
-            print(f"⚠ Could not get base price for {symbol}")
-
+            print(f"Could not get base price for {symbol}")
             log_event(
                 timestamp=datetime.now(),
                 symbol=symbol,
@@ -30,7 +28,6 @@ class PriceTracker:
             return None
 
         self.base_prices[symbol] = price
-
         print(f"{datetime.now()} | BASE SAVED | {symbol} | {price}")
 
         log_event(
@@ -42,23 +39,24 @@ class PriceTracker:
 
         return price
 
-    # ---------------- SIGNAL CHECK ---------------- #
     def check_signal(self, symbol):
         epic = EPIC_MAP.get(symbol)
-
         base_price = self.base_prices.get(symbol)
 
         if base_price is None:
-            print(f"{symbol}: No base price → saving first")
-            self.save_base_price(symbol)
-            return None
+            base_price = self._latest_saved_base_price(symbol)
+            if base_price is not None:
+                self.base_prices[symbol] = base_price
+                print(f"{symbol}: recovered saved base price {base_price}")
+            else:
+                print(f"{symbol}: No base price -> saving first")
+                self.save_base_price(symbol)
+                return None
 
         current_price = self.ig.get_price_for_symbol(symbol, epic)
 
-        # 🔥 CRITICAL FIX: Always log even if no price
         if current_price is None:
-            print(f"⚠ No price for {symbol}")
-
+            print(f"No price for {symbol}")
             log_event(
                 timestamp=datetime.now(),
                 symbol=symbol,
@@ -68,7 +66,6 @@ class PriceTracker:
             )
             return None
 
-        # ---------------- SIGNAL ---------------- #
         result = detect_signal(base_price, current_price)
         paper_action = paper_action_for_signal(result)
 
@@ -78,7 +75,6 @@ class PriceTracker:
             f"signal={result['signal']} | quality={result.get('quality', 0)}"
         )
 
-        # 🔥 ALWAYS LOG
         log_event(
             timestamp=datetime.now(),
             symbol=symbol,
@@ -102,8 +98,7 @@ class PriceTracker:
                 notes=f"Paper trade idea only. Quality: {result.get('quality', 0):.2f}",
             )
 
-        # ---------------- DEMO ORDER ---------------- #
-        signal_info = {
+        return {
             "symbol": symbol,
             "signal": result["signal"],
             "base_price": base_price,
@@ -112,4 +107,24 @@ class PriceTracker:
             "quality": result.get("quality", 0),
         }
 
-        return signal_info
+    def _latest_saved_base_price(self, symbol):
+        try:
+            rows = fetch_latest_rows("trade_log", limit=500)
+        except Exception:
+            return None
+
+        for row in reversed(rows):
+            if (row.get("symbol") or "").upper() != symbol.upper():
+                continue
+            if (row.get("event") or "").upper() != "BASE_PRICE_SAVED":
+                continue
+
+            try:
+                price = float(row.get("base_price"))
+            except (TypeError, ValueError):
+                continue
+
+            if price > 0:
+                return price
+
+        return None

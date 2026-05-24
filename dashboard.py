@@ -54,6 +54,7 @@ from logger import (
     get_last_update,
     fetch_row_count,
     get_dashboard_status,
+    log_event,
 )
 
 app = Flask(__name__)
@@ -104,7 +105,16 @@ def run_trading_cycle():
 
         if AUTO_SIGNAL_DEMO_TRADING:
             signal_candidates = run_dashboard_signal_cycle(price_tracker)
-            place_top_signal_orders(ig_service, signal_candidates)
+            orders_sent = place_top_signal_orders(ig_service, signal_candidates)
+            log_event(
+                timestamp=datetime.now(),
+                symbol="SYSTEM",
+                event="BOT_CYCLE_COMPLETE",
+                notes=(
+                    f"Dashboard scheduler checked {len(signal_candidates)} "
+                    f"signal candidate(s); sent {orders_sent} order(s)."
+                ),
+            )
 
         try:
             print_open_positions(ig_service)
@@ -129,6 +139,7 @@ def start_trading_scheduler():
         trigger=IntervalTrigger(minutes=5),
         id='trading_cycle',
         name='Trading Cycle',
+        next_run_time=datetime.now(),
         replace_existing=True
     )
     scheduler.start()
@@ -141,8 +152,9 @@ def run_dashboard_signal_cycle(tracker):
         stage = get_market_open_stage(now)
         print(f"Market-open signal cycle stage: {stage}")
         signal_candidates = []
+        watch_items = load_market_open_watchlist()
 
-        for item in load_market_open_watchlist():
+        for item in watch_items:
             symbol = item.symbol
             if stage == "SAVE_BASE_PRICE":
                 tracker.save_base_price(symbol)
@@ -150,6 +162,14 @@ def run_dashboard_signal_cycle(tracker):
                 signal_info = tracker.check_signal(symbol)
                 if signal_info:
                     signal_candidates.append(signal_info)
+
+        if stage != "CHECK_MARKET_OPEN_SIGNAL":
+            log_event(
+                timestamp=datetime.now(),
+                symbol="SYSTEM",
+                event="MARKET_OPEN_STAGE",
+                notes=f"Stage={stage}; watched {len(watch_items)} symbol(s).",
+            )
 
         return signal_candidates
 

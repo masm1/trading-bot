@@ -51,14 +51,14 @@ def run_earnings_cycle(tracker, now):
     return signal_candidates
 
 
-def run_market_open_cycle(tracker, now):
+def run_market_open_cycle(tracker, now, stage=None):
     watch_items = load_market_open_watchlist()
 
     if not watch_items:
         print("No active symbols in market open watchlist")
         return []
 
-    stage = get_market_open_stage(now)
+    stage = stage or get_market_open_stage(now)
     print(f"Market-open mode | Market clock: {describe_market_open_clock(now)} | Stage: {stage}")
 
     signal_candidates = []
@@ -98,8 +98,11 @@ def main():
             now = datetime.now()
             print(f"\nCycle at {now.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
+            cycle_note = ""
             if MARKET_OPEN_AUTO_MODE:
-                signal_candidates = run_market_open_cycle(tracker, now)
+                market_stage = get_market_open_stage(now)
+                signal_candidates = run_market_open_cycle(tracker, now, market_stage)
+                cycle_note = f" Market stage={market_stage}."
             else:
                 signal_candidates = run_earnings_cycle(tracker, now)
 
@@ -108,7 +111,7 @@ def main():
                 timestamp=datetime.now(),
                 symbol="SYSTEM",
                 event="BOT_CYCLE_COMPLETE",
-                notes=f"Checked {len(signal_candidates)} signal candidate(s).",
+                notes=f"Checked {len(signal_candidates)} signal candidate(s).{cycle_note}",
             )
 
             print("\nUpdating dashboard...\n")
