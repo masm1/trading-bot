@@ -4,8 +4,8 @@ import sys
 import time
 from datetime import datetime
 
-from config import MARKET_OPEN_AUTO_MODE
-from demo_trader import place_top_signal_orders, print_open_positions
+from config import AUTO_TREND_BUY_TRADING, MARKET_OPEN_AUTO_MODE
+from demo_trader import place_top_signal_orders, place_top_trend_buy_order, print_open_positions
 from ig_service import IGService
 from logger import create_log_files_if_missing, log_event
 from market_open import (
@@ -115,7 +115,10 @@ def main():
             else:
                 signal_candidates = run_earnings_cycle(tracker, now)
 
-            place_top_signal_orders(ig, signal_candidates)
+            if AUTO_TREND_BUY_TRADING:
+                place_top_trend_buy_order(ig, signal_candidates)
+            else:
+                place_top_signal_orders(ig, signal_candidates)
             log_event(
                 timestamp=datetime.now(),
                 symbol="SYSTEM",

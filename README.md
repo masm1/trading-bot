@@ -215,6 +215,19 @@ NVDA,yes,Market open auto candidate
 
 The bot saves base prices during the first few minutes after open, checks signals from 15 to 90 minutes after open, ranks eligible signals, and sends no more than `MAX_SIGNAL_DEMO_TRADES_PER_ROUND` demo orders.
 
+## Optional Trend Buy Mode
+
+To buy only the strongest bullish market-open candidate in IG demo, capped at $500 notional, edit `.env`:
+
+```text
+AUTO_TREND_BUY_TRADING=true
+TREND_BUY_MAX_NOTIONAL_USD=500
+TREND_BUY_MIN_CHANGE_PERCENT=1.0
+MIN_SIGNAL_QUALITY=0.6
+```
+
+When this mode is enabled, the bot only considers `STRONG_RALLY` candidates, picks the highest ranked one, and places one BUY demo order. The configured notional is capped at $500 even if a higher value is provided.
+
 Open demo positions are checked every bot cycle. If `AUTO_CLOSE_DEMO_POSITIONS=true`, the bot tries to close a demo position when:
 
 ```text

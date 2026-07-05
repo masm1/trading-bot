@@ -24,7 +24,12 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from ig_service import IGService
-from demo_trader import place_top_signal_orders, print_open_positions, run_demo_trade_plan
+from demo_trader import (
+    place_top_signal_orders,
+    place_top_trend_buy_order,
+    print_open_positions,
+    run_demo_trade_plan,
+)
 from tracker import PriceTracker
 from watchlist import get_event_stage, load_watchlist
 from market_open import (
@@ -35,6 +40,7 @@ from market_open import (
 from config import (
     AUTO_DEMO_TRADING,
     AUTO_SIGNAL_DEMO_TRADING,
+    AUTO_TREND_BUY_TRADING,
     FINNHUB_API_KEY,
     LIVE_MARKET_SYMBOLS,
     MARKET_OPEN_AUTO_MODE,
@@ -109,9 +115,12 @@ def run_trading_cycle():
         if AUTO_DEMO_TRADING:
             run_demo_trade_plan(ig_service)
 
-        if AUTO_SIGNAL_DEMO_TRADING:
+        if AUTO_SIGNAL_DEMO_TRADING or AUTO_TREND_BUY_TRADING:
             signal_candidates = run_dashboard_signal_cycle(price_tracker)
-            orders_sent = place_top_signal_orders(ig_service, signal_candidates)
+            if AUTO_TREND_BUY_TRADING:
+                orders_sent = place_top_trend_buy_order(ig_service, signal_candidates)
+            else:
+                orders_sent = place_top_signal_orders(ig_service, signal_candidates)
             log_event(
                 timestamp=datetime.now(),
                 symbol="SYSTEM",
@@ -135,7 +144,7 @@ def run_trading_cycle():
 
 def start_trading_scheduler():
     """Start the background trading scheduler."""
-    if not AUTO_DEMO_TRADING and not AUTO_SIGNAL_DEMO_TRADING:
+    if not AUTO_DEMO_TRADING and not AUTO_SIGNAL_DEMO_TRADING and not AUTO_TREND_BUY_TRADING:
         print("Auto trading is disabled")
         return
 
@@ -819,6 +828,7 @@ def dashboard_data():
         "config_status": {
             "market_open_auto_mode": MARKET_OPEN_AUTO_MODE,
             "auto_signal_demo_trading": AUTO_SIGNAL_DEMO_TRADING,
+            "auto_trend_buy_trading": AUTO_TREND_BUY_TRADING,
             "auto_demo_trading": AUTO_DEMO_TRADING,
             "market_open_time": MARKET_OPEN_TIME,
         },

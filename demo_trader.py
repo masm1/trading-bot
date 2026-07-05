@@ -7,6 +7,7 @@ from config import (
     AUTO_CLOSE_DEMO_POSITIONS,
     AUTO_DEMO_TRADING,
     AUTO_SIGNAL_DEMO_TRADING,
+    AUTO_TREND_BUY_TRADING,
     DEMO_STOP_LOSS_AMOUNT,
     DEMO_TAKE_PROFIT_AMOUNT,
     DEMO_TRADE_ONCE_PER_SYMBOL_PER_DAY,
@@ -16,6 +17,8 @@ from config import (
     MIN_SIGNAL_QUALITY,
     SIGNAL_CANDIDATE_POOL_SIZE,
     SIGNAL_DEMO_NOTIONAL_USD,
+    TREND_BUY_MAX_NOTIONAL_USD,
+    TREND_BUY_MIN_CHANGE_PERCENT,
 )
 from logger import (
     CLOSED_POSITIONS_FILE,
@@ -325,6 +328,113 @@ def place_top_signal_orders(ig_service, signal_candidates):
     return orders_sent
 
 
+def place_top_trend_buy_order(ig_service, signal_candidates):
+    if not AUTO_TREND_BUY_TRADING:
+        return 0
+
+    if not signal_candidates:
+        return 0
+
+    if _is_max_drawdown_reached():
+        print("Maximum drawdown reached. Skipping trend buy order.")
+        return 0
+
+    ranked_candidates = _rank_trend_buy_candidates(signal_candidates)
+    if not ranked_candidates:
+        print("No eligible bullish trend candidates for auto buy.")
+        return 0
+
+    selected = ranked_candidates[0]
+    return 1 if place_trend_buy_order_from_signal(ig_service, selected) else 0
+
+
+def place_trend_buy_order_from_signal(ig_service, signal_info):
+    symbol = signal_info["symbol"]
+    current_price = signal_info["current_price"]
+
+    if _already_traded_today(symbol):
+        print(f"{symbol}: trend buy already sent today. Skipping.")
+        return False
+
+    size = _calculate_demo_size(current_price, TREND_BUY_MAX_NOTIONAL_USD)
+    if size is None:
+        message = "Could not calculate trend buy size from current price."
+        print(f"{symbol}: {message}")
+        log_demo_order(
+            timestamp=datetime.now(),
+            symbol=symbol,
+            epic="",
+            direction="BUY",
+            size="",
+            status="TREND_BUY_FAILED",
+            message=message,
+        )
+        return False
+
+    search_term = IG_SEARCH_MAP.get(symbol, symbol)
+    print(
+        f"{symbol}: strongest bullish trend candidate | "
+        f"change={signal_info.get('change_percent')}% | "
+        f"quality={signal_info.get('quality', 0):.2f} | "
+        f"BUY approx ${TREND_BUY_MAX_NOTIONAL_USD:g} | size={size}"
+    )
+
+    epic = ig_service.search_market(search_term)
+    if not epic:
+        message = "Could not find IG market for trend buy order."
+        print(f"{symbol}: {message}")
+        log_demo_order(
+            timestamp=datetime.now(),
+            symbol=symbol,
+            epic="",
+            direction="BUY",
+            size=size,
+            status="TREND_BUY_FAILED",
+            message=message,
+        )
+        return False
+
+    result = ig_service.place_demo_market_order(
+        epic=epic,
+        direction="BUY",
+        size=size,
+    )
+
+    status = "TREND_BUY_SENT" if result.get("success") else "TREND_BUY_FAILED"
+    message = result.get("message", "")
+    deal_reference = result.get("deal_reference", "")
+    deal_id = result.get("deal_id", "")
+
+    log_demo_order(
+        timestamp=datetime.now(),
+        symbol=symbol,
+        epic=epic,
+        direction="BUY",
+        size=size,
+        status=status,
+        deal_reference=deal_reference,
+        deal_id=deal_id,
+        message=message,
+    )
+    log_event(
+        timestamp=datetime.now(),
+        symbol=symbol,
+        event="AUTO_TREND_BUY_ORDER_" + status,
+        base_price=signal_info["base_price"],
+        current_price=current_price,
+        change_percent=signal_info["change_percent"],
+        signal=signal_info["signal"],
+        paper_action="BUY demo order from strongest bullish trend",
+        notes=message,
+    )
+
+    print(f"{symbol}: trend buy order {status}. {message}")
+    if deal_reference:
+        print(f"{symbol}: deal reference {deal_reference}")
+
+    return result.get("success", False)
+
+
 def _rank_signal_candidates(signal_candidates):
     limited_candidates = signal_candidates[:SIGNAL_CANDIDATE_POOL_SIZE]
     eligible = []
@@ -353,6 +463,38 @@ def _rank_signal_candidates(signal_candidates):
     )
 
 
+def _rank_trend_buy_candidates(signal_candidates):
+    eligible = []
+
+    for candidate in signal_candidates[:SIGNAL_CANDIDATE_POOL_SIZE]:
+        signal = candidate.get("signal")
+        quality = _to_float(candidate.get("quality")) or 0.0
+        change_percent = _to_float(candidate.get("change_percent")) or 0.0
+
+        if signal != "STRONG_RALLY":
+            continue
+
+        if quality < MIN_SIGNAL_QUALITY:
+            continue
+
+        if change_percent < TREND_BUY_MIN_CHANGE_PERCENT:
+            continue
+
+        if _already_traded_today(candidate.get("symbol", "")):
+            continue
+
+        eligible.append(candidate)
+
+    return sorted(
+        eligible,
+        key=lambda item: (
+            item.get("quality", 0),
+            item.get("change_percent", 0),
+        ),
+        reverse=True,
+    )
+
+
 def _already_traded_today(symbol):
     if not DEMO_TRADE_ONCE_PER_SYMBOL_PER_DAY:
         return False
@@ -361,7 +503,7 @@ def _already_traded_today(symbol):
         return False
 
     today = datetime.now().date().isoformat()
-    valid_open_statuses = {"SENT", "SIGNAL_SENT"}
+    valid_open_statuses = {"SENT", "SIGNAL_SENT", "TREND_BUY_SENT"}
 
     with DEMO_ORDERS_FILE.open("r", newline="") as file:
         reader = csv.DictReader(file)
@@ -394,12 +536,13 @@ def _is_max_drawdown_reached():
     return total_pl <= MAX_DRAWDOWN
 
 
-def _calculate_demo_size(current_price):
+def _calculate_demo_size(current_price, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
     price = _to_float(current_price)
-    if price is None or price <= 0:
+    notional = _to_float(notional_usd)
+    if price is None or price <= 0 or notional is None or notional <= 0:
         return None
 
-    size = SIGNAL_DEMO_NOTIONAL_USD / price
+    size = notional / price
     return round(max(size, 0.00001), 5)
 
 
