@@ -36,6 +36,7 @@ from config import (
     AUTO_DEMO_TRADING,
     AUTO_SIGNAL_DEMO_TRADING,
     FINNHUB_API_KEY,
+    LIVE_MARKET_SYMBOLS,
     MARKET_OPEN_AUTO_MODE,
     MARKET_OPEN_TIME,
     looks_like_placeholder,
@@ -65,6 +66,11 @@ RECENT_ACTIVITY_MAX_AGE = timedelta(hours=48)
 TRADE_LOG_MAX_AGE = timedelta(hours=24)
 PRICE_TICKER_CACHE_SECONDS = 60
 PRICE_TICKER_CACHE = {
+    "updated_at": 0,
+    "rows": [],
+}
+LIVE_MARKETS_CACHE_SECONDS = 60
+LIVE_MARKETS_CACHE = {
     "updated_at": 0,
     "rows": [],
 }
@@ -558,6 +564,46 @@ def dashboard_price_ticker(watchlist_rows):
     return rows
 
 
+def configured_live_markets():
+    rows = []
+    for item in LIVE_MARKET_SYMBOLS.split(","):
+        item = item.strip()
+        if not item:
+            continue
+
+        symbol, _, label = item.partition(":")
+        symbol = symbol.strip().upper()
+        label = label.strip() or symbol
+        if symbol:
+            rows.append({"symbol": symbol, "label": label})
+
+    return rows
+
+
+def dashboard_live_markets():
+    now = time.time()
+    if now - LIVE_MARKETS_CACHE["updated_at"] < LIVE_MARKETS_CACHE_SECONDS:
+        return LIVE_MARKETS_CACHE["rows"]
+
+    rows = []
+    for market in configured_live_markets():
+        quote = fetch_price_quote(market["symbol"])
+        rows.append(
+            {
+                "symbol": market["symbol"],
+                "label": market["label"],
+                "price": quote.get("price", ""),
+                "change": quote.get("change", ""),
+                "change_percent": quote.get("change_percent", ""),
+                "direction": quote.get("direction", "flat"),
+            }
+        )
+
+    LIVE_MARKETS_CACHE["updated_at"] = now
+    LIVE_MARKETS_CACHE["rows"] = rows
+    return rows
+
+
 def fetch_price_quote(symbol):
     if requests is None or looks_like_placeholder(FINNHUB_API_KEY):
         return latest_logged_price_quote(symbol)
@@ -765,6 +811,7 @@ def dashboard_data():
         "bot_status": bot_status_details(bot_heartbeat),
         "watchlist_stage_summary": stage_summary,
         "price_ticker": price_ticker,
+        "live_markets": dashboard_live_markets(),
         "watchlist": watchlist_rows,
         "paper_trades": paper_trade_rows,
         "demo_orders": demo_orders,

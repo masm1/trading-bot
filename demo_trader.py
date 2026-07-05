@@ -41,6 +41,7 @@ class DemoTradePlan:
     search_term: str
     direction: str
     size: float
+    notional_usd: float | None
     active: bool
     notes: str = ""
 
@@ -59,6 +60,7 @@ def load_demo_trade_plan():
             search_term = raw_search_term or IG_SEARCH_MAP.get(symbol, symbol)
             direction = (row.get("direction") or "").strip().upper()
             raw_size = (row.get("size") or "").strip()
+            raw_notional_usd = (row.get("notional_usd") or "").strip()
             raw_active = (row.get("active") or "no").strip().lower()
             notes = (row.get("notes") or "").strip()
 
@@ -66,9 +68,21 @@ def load_demo_trade_plan():
                 continue
 
             try:
-                size = float(raw_size)
+                size = float(raw_size) if raw_size else 0.0
             except ValueError:
                 print(f"Skipping {symbol}: size must be a number.")
+                continue
+
+            notional_usd = None
+            if raw_notional_usd:
+                try:
+                    notional_usd = float(raw_notional_usd)
+                except ValueError:
+                    print(f"Skipping {symbol}: notional_usd must be a number.")
+                    continue
+
+            if size <= 0 and notional_usd is None:
+                print(f"Skipping {symbol}: provide size or notional_usd.")
                 continue
 
             active = raw_active in ["yes", "y", "true", "1", "active"]
@@ -78,6 +92,7 @@ def load_demo_trade_plan():
                     search_term=search_term,
                     direction=direction,
                     size=size,
+                    notional_usd=notional_usd,
                     active=active,
                     notes=notes,
                 )
@@ -106,7 +121,9 @@ def run_demo_trade_plan(ig_service):
             print(f"{plan.symbol}: demo trade already sent today. Skipping.")
             continue
 
-        print(f"Preparing demo trade: {plan.symbol} {plan.direction} size={plan.size}")
+        size = plan.size
+        notional_note = ""
+        print(f"Preparing demo trade: {plan.symbol} {plan.direction}")
         epic = ig_service.search_market(plan.search_term)
         if not epic:
             message = "Could not find a tradable IG market for this search term."
@@ -116,16 +133,35 @@ def run_demo_trade_plan(ig_service):
                 symbol=plan.symbol,
                 epic="",
                 direction=plan.direction,
-                size=plan.size,
+                size=size,
                 status="FAILED",
                 message=message,
             )
             continue
 
+        if plan.notional_usd is not None:
+            current_price = ig_service.get_price_for_symbol(plan.symbol, epic=epic)
+            size = _calculate_notional_size(plan.notional_usd, current_price)
+            if size is None:
+                message = "Could not calculate demo size from current price."
+                print(f"{plan.symbol}: {message}")
+                log_demo_order(
+                    timestamp=datetime.now(),
+                    symbol=plan.symbol,
+                    epic=epic,
+                    direction=plan.direction,
+                    size="",
+                    status="FAILED",
+                    message=message,
+                )
+                continue
+            notional_note = f" approx ${plan.notional_usd:g}"
+
+        print(f"{plan.symbol}: placing {plan.direction} demo order{notional_note} size={size}")
         result = ig_service.place_demo_market_order(
             epic=epic,
             direction=plan.direction,
-            size=plan.size,
+            size=size,
         )
 
         status = "SENT" if result.get("success") else "FAILED"
@@ -138,7 +174,7 @@ def run_demo_trade_plan(ig_service):
             symbol=plan.symbol,
             epic=epic,
             direction=plan.direction,
-            size=plan.size,
+            size=size,
             status=status,
             deal_reference=deal_reference,
             deal_id=deal_id,
@@ -365,6 +401,15 @@ def _calculate_demo_size(current_price):
 
     size = SIGNAL_DEMO_NOTIONAL_USD / price
     return round(max(size, 0.00001), 5)
+
+
+def _calculate_notional_size(notional_usd, current_price):
+    price = _to_float(current_price)
+    notional = _to_float(notional_usd)
+    if price is None or price <= 0 or notional is None or notional <= 0:
+        return None
+
+    return round(max(notional / price, 0.00001), 5)
 
 
 def print_open_positions(ig_service):

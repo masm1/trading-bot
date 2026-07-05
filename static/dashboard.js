@@ -29,6 +29,8 @@ const netPlEl = document.getElementById("netPl");
 const winRateEl = document.getElementById("winRate");
 const stageFlowEl = document.getElementById("stageFlow");
 const priceTickerEl = document.getElementById("priceTicker");
+const liveMarketsGridEl = document.getElementById("liveMarketsGrid");
+const liveMarketsPillEl = document.getElementById("liveMarketsPill");
 let plChart;
 let watchlistScrollFrame;
 let watchlistScrollPaused = false;
@@ -233,6 +235,59 @@ function renderPriceTicker(rows) {
   });
 }
 
+function renderLiveMarkets(rows) {
+  if (!liveMarketsGridEl) return;
+  liveMarketsGridEl.replaceChildren();
+
+  const marketRows = rows || [];
+  if (liveMarketsPillEl) liveMarketsPillEl.textContent = marketRows.length;
+
+  if (marketRows.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "live-market-empty";
+    empty.textContent = "No live markets configured yet.";
+    liveMarketsGridEl.appendChild(empty);
+    return;
+  }
+
+  marketRows.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = `live-market-card ${item.direction || "flat"}`;
+
+    const header = document.createElement("div");
+    header.className = "live-market-header";
+
+    const titleWrap = document.createElement("div");
+    const symbol = document.createElement("strong");
+    const label = document.createElement("span");
+    symbol.textContent = item.symbol || "-";
+    label.textContent = item.label || item.symbol || "-";
+    titleWrap.append(symbol, label);
+
+    const change = document.createElement("span");
+    change.className = "live-market-change";
+    change.textContent = item.change_percent === "" || item.change_percent === null || item.change_percent === undefined
+      ? "-"
+      : signedPercent(item.change_percent);
+
+    header.append(titleWrap, change);
+
+    const price = document.createElement("div");
+    price.className = "live-market-price";
+    price.textContent = item.price === "" || item.price === null || item.price === undefined
+      ? "Price pending"
+      : `$${Number(item.price).toFixed(2)}`;
+
+    const move = document.createElement("small");
+    move.textContent = item.change === "" || item.change === null || item.change === undefined
+      ? "Awaiting quote"
+      : `${number(item.change) > 0 ? "+" : ""}${number(item.change).toFixed(2)} today`;
+
+    card.append(header, price, move);
+    liveMarketsGridEl.appendChild(card);
+  });
+}
+
 function filterWatchlistRows(rows) {
   const filter = tableFilters.watchlist;
   if (filter === "all") return rows;
@@ -336,6 +391,7 @@ function render(data) {
   renderSummary(data);
   renderStageFlow(data.watchlist_stage_summary);
   renderPriceTicker(data.price_ticker);
+  renderLiveMarkets(data.live_markets);
   renderChart(data);
 
   setRows(

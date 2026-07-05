@@ -352,6 +352,86 @@ main {
   color: var(--accent);
 }
 
+.live-markets-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+
+.live-market-card,
+.live-market-empty {
+  min-height: 132px;
+  padding: 15px;
+  background: var(--panel);
+}
+
+.live-market-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 3px solid var(--warn);
+}
+
+.live-market-card.up {
+  border-top-color: var(--good);
+}
+
+.live-market-card.down {
+  border-top-color: var(--bad);
+}
+
+.live-market-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.live-market-header strong,
+.live-market-header span,
+.live-market-card small {
+  display: block;
+}
+
+.live-market-header strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.live-market-header span,
+.live-market-card small,
+.live-market-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.live-market-change {
+  flex: 0 0 auto;
+  font-weight: 900;
+}
+
+.live-market-card.up .live-market-change {
+  color: var(--good);
+}
+
+.live-market-card.down .live-market-change {
+  color: var(--bad);
+}
+
+.live-market-card.flat .live-market-change {
+  color: var(--warn);
+}
+
+.live-market-price {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
 .analytics-grid,
 .grid {
   display: grid;
@@ -560,6 +640,7 @@ tr:last-child td {
   .ticker-tape,
   .analytics-grid,
   .stage-flow,
+  .live-markets-grid,
   .grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -594,6 +675,7 @@ tr:last-child td {
   .analytics-grid,
   .grid,
   .stage-flow,
+  .live-markets-grid,
   .pl-summary {
     grid-template-columns: 1fr;
   }

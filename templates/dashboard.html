@@ -70,6 +70,17 @@
     <div class="service-status" id="serviceStatus">{{ data.ig_status }}</div>
 
     <main>
+      <section class="section live-markets-panel">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Live Markets</p>
+            <h2>Market Snapshot</h2>
+          </div>
+          <span class="count-pill" id="liveMarketsPill">{{ data.live_markets|length }}</span>
+        </div>
+        <div class="live-markets-grid" id="liveMarketsGrid"></div>
+      </section>
+
       <section class="timeline-panel">
         <div class="sectionHeader">
           <div>
