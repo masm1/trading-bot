@@ -52,6 +52,9 @@ def load_market_open_watchlist():
 
 def get_market_open_stage(now=None):
     market_now = _market_now(now)
+    if _is_weekend(market_now):
+        return "MARKET_CLOSED_WEEKEND"
+
     open_time = _parse_market_open_time()
     market_open = datetime.combine(market_now.date(), open_time, tzinfo=market_now.tzinfo)
     minutes_from_open = (market_now - market_open).total_seconds() / 60
@@ -78,6 +81,10 @@ def minutes_from_market_open(now=None):
     open_time = _parse_market_open_time()
     market_open = datetime.combine(market_now.date(), open_time, tzinfo=market_now.tzinfo)
     return int((market_now - market_open).total_seconds() / 60)
+
+
+def _is_weekend(market_now):
+    return market_now.weekday() >= 5
 
 
 def _market_now(now=None):

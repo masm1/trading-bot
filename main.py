@@ -61,6 +61,15 @@ def run_market_open_cycle(tracker, now, stage=None):
     stage = stage or get_market_open_stage(now)
     print(f"Market-open mode | Market clock: {describe_market_open_clock(now)} | Stage: {stage}")
 
+    if stage in [
+        "MARKET_CLOSED_WEEKEND",
+        "WAITING_FOR_MARKET_OPEN",
+        "WAITING_FOR_SIGNAL_WINDOW",
+        "MARKET_OPEN_WINDOW_COMPLETE",
+    ]:
+        print("No market-open signal action for this stage.")
+        return []
+
     signal_candidates = []
     for item in watch_items:
         symbol = item.symbol

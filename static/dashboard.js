@@ -295,7 +295,7 @@ function filterWatchlistRows(rows) {
     return rows.filter((row) => text(row.stage).startsWith("CHECK"));
   }
   if (filter === "EVENT_COMPLETE") {
-    return rows.filter((row) => ["EVENT_COMPLETE", "MARKET_OPEN_WINDOW_COMPLETE"].includes(row.stage));
+    return rows.filter((row) => ["EVENT_COMPLETE", "MARKET_OPEN_WINDOW_COMPLETE", "MARKET_CLOSED_WEEKEND"].includes(row.stage));
   }
   return rows.filter((row) => row.stage === filter);
 }

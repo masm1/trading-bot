@@ -160,6 +160,20 @@ def run_dashboard_signal_cycle(tracker):
         signal_candidates = []
         watch_items = load_market_open_watchlist()
 
+        if stage in [
+            "MARKET_CLOSED_WEEKEND",
+            "WAITING_FOR_MARKET_OPEN",
+            "WAITING_FOR_SIGNAL_WINDOW",
+            "MARKET_OPEN_WINDOW_COMPLETE",
+        ]:
+            log_event(
+                timestamp=datetime.now(),
+                symbol="SYSTEM",
+                event="MARKET_OPEN_STAGE",
+                notes=f"Stage={stage}; watched {len(watch_items)} symbol(s).",
+            )
+            return signal_candidates
+
         for item in watch_items:
             symbol = item.symbol
             if stage == "SAVE_BASE_PRICE":
@@ -380,7 +394,7 @@ def paper_trade_watch_rows(watchlist_rows, limit=6):
     rows = []
     for item in watchlist_rows:
         stage = item.get("stage", "")
-        if stage in ["EVENT_COMPLETE", "MARKET_OPEN_WINDOW_COMPLETE"]:
+        if stage in ["EVENT_COMPLETE", "MARKET_OPEN_WINDOW_COMPLETE", "MARKET_CLOSED_WEEKEND"]:
             continue
 
         rows.append(
@@ -461,7 +475,7 @@ def dashboard_watchlist(limit=50):
 
         rows.sort(
             key=lambda row: (
-                row["stage"] == "MARKET_OPEN_WINDOW_COMPLETE",
+                row["stage"] in ["MARKET_OPEN_WINDOW_COMPLETE", "MARKET_CLOSED_WEEKEND"],
                 abs(row["minutes_from_event"]),
                 row["symbol"],
             )
@@ -494,6 +508,7 @@ def dashboard_watchlist(limit=50):
 def watchlist_stage_summary(rows):
     if MARKET_OPEN_AUTO_MODE:
         buckets = [
+            ("Closed", "MARKET_CLOSED_WEEKEND"),
             ("Waiting", "WAITING_FOR_MARKET_OPEN"),
             ("Base Window", "SAVE_BASE_PRICE"),
             ("Signal Window", "CHECK_MARKET_OPEN_SIGNAL"),
