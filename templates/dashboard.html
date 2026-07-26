@@ -213,7 +213,13 @@
             <p class="eyebrow">Signals</p>
             <h2>Paper Trade Ideas</h2>
           </div>
-          <span class="count-pill" id="paperTradeCount">{{ data.paper_trade_count }}</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;">
+              <input id="debugShowBuy" type="checkbox" style="width:16px;height:16px;" />
+              <span>Debug: show Buy</span>
+            </label>
+            <span class="count-pill" id="paperTradeCount">{{ data.paper_trade_count }}</span>
+          </div>
         </div>
         <div class="tableWrap">
           <table>

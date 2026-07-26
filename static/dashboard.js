@@ -115,7 +115,44 @@ function renderPaperTradeAction(value, item) {
   const symbol = text(item.symbol);
   const signal = text(item.signal).toUpperCase();
   const changePercent = number(item.change_percent);
-  const eligible = symbol && (signal === "STRONG_RALLY" || changePercent > 0);
+  // Read debug toggle (checkbox) or fallback to localStorage
+  const debugEl = document.getElementById("debugShowBuy");
+  const debugEnabled = debugEl ? debugEl.checked : localStorage.getItem("debugShowBuy") === "1";
+
+  // Persist toggle changes
+  if (debugEl && !debugEl.__debug_initialized) {
+    debugEl.checked = localStorage.getItem("debugShowBuy") === "1";
+    debugEl.addEventListener("change", () => {
+      localStorage.setItem("debugShowBuy", debugEl.checked ? "1" : "0");
+      refresh();
+    });
+    debugEl.__debug_initialized = true;
+  }
+
+  // Show Buy button when it's a strong rally or the change is non-negative.
+  // Also show when a matching open position has positive profit.
+  let eligible = false;
+  if (symbol) {
+    if (signal === "STRONG_RALLY" || changePercent >= 0) eligible = true;
+
+    // Check live open positions for profitable entries matching symbol
+    try {
+      const positions = currentData.positions || [];
+      for (const pos of positions) {
+        const instr = (pos.instrument || "").toString().toUpperCase();
+        const epic = (pos.epic || "").toString().toUpperCase();
+        const profit = number(pos.profit_loss);
+        if (profit > 0 && (instr.includes(symbol) || epic.includes(symbol) || instr.startsWith(symbol))) {
+          eligible = true;
+          break;
+        }
+      }
+    } catch (e) {
+      // ignore parsing errors
+    }
+  }
+
+  if (debugEnabled) eligible = true;
 
   if (!eligible) {
     const empty = document.createElement("span");
