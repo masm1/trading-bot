@@ -54,7 +54,7 @@ from config import (
     MANUAL_BUY_RATE_LIMIT_WINDOW_SECONDS,
     MANUAL_BUY_RATE_LIMIT_MAX,
 )
-from mapping import PRICE_SYMBOL_MAP, IG_SEARCH_MAP
+from mapping import EPIC_MAP, PRICE_SYMBOL_MAP, IG_SEARCH_MAP
 from db import replace_rows
 
 from logger import (
@@ -1028,8 +1028,11 @@ def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
     if not ig.login():
         return {"success": False, "message": "IG login failed."}
 
-    search_term = IG_SEARCH_MAP.get(symbol, symbol)
-    epic = ig.search_market(search_term)
+    symbol_key = symbol.upper()
+    epic = EPIC_MAP.get(symbol_key)
+    if not epic:
+        search_term = IG_SEARCH_MAP.get(symbol_key, symbol)
+        epic = ig.search_market(search_term)
     if not epic:
         return {"success": False, "message": f"Could not find IG market for {symbol}."}
 

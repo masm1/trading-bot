@@ -1,6 +1,9 @@
 # EPIC_MAP is only for confirmed IG EPIC codes.
 # Do not guess these. Wrong EPICs cause IG 403/404 errors.
-EPIC_MAP = {}
+EPIC_MAP = {
+    "BTC": "CS.D.BITCOIN.CFD.IP",
+    "ETH": "CS.D.ETHUSD.CFD.IP",
+}
 
 # Finnhub symbols used for current price display.
 PRICE_SYMBOL_MAP = {
