@@ -328,6 +328,27 @@ function renderStageFlow(summary) {
   });
 }
 
+function formatPriceText(value) {
+  if (value === "" || value === null || value === undefined) {
+    return "No live quote";
+  }
+
+  return `$${Number(value).toFixed(2)}`;
+}
+
+function formatMoveText(value) {
+  if (value === "" || value === null || value === undefined) {
+    return "No change data";
+  }
+
+  const numberValue = Number(value);
+  if (Number.isNaN(numberValue)) {
+    return "No change data";
+  }
+
+  return `${numberValue > 0 ? "+" : ""}${numberValue.toFixed(2)} today`;
+}
+
 function renderPriceTicker(rows) {
   if (!priceTickerEl) return;
   priceTickerEl.replaceChildren();
@@ -350,9 +371,7 @@ function renderPriceTicker(rows) {
     const status = document.createElement("small");
 
     symbol.textContent = item.symbol || "-";
-    price.textContent = item.price === "" || item.price === null || item.price === undefined
-      ? "Price pending"
-      : `$${Number(item.price).toFixed(2)}`;
+    price.textContent = formatPriceText(item.price);
     change.textContent = item.change_percent === "" || item.change_percent === null || item.change_percent === undefined
       ? "-"
       : signedPercent(item.change_percent);
@@ -403,14 +422,12 @@ function renderLiveMarkets(rows) {
 
     const price = document.createElement("div");
     price.className = "live-market-price";
-    price.textContent = item.price === "" || item.price === null || item.price === undefined
-      ? "Price pending"
-      : `$${Number(item.price).toFixed(2)}`;
+    price.textContent = formatPriceText(item.price);
 
     const move = document.createElement("small");
     move.textContent = item.change === "" || item.change === null || item.change === undefined
-      ? "Awaiting quote"
-      : `${number(item.change) > 0 ? "+" : ""}${number(item.change).toFixed(2)} today`;
+      ? "No change data"
+      : formatMoveText(item.change);
 
     card.append(header, price, move);
     liveMarketsGridEl.appendChild(card);
