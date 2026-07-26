@@ -92,3 +92,6 @@ LIVE_MARKET_SYMBOLS = get_env(
     "LIVE_MARKET_SYMBOLS",
     "SPY:S&P 500,QQQ:Nasdaq 100,DIA:Dow 30,IWM:Russell 2000,GLD:Gold,USO:Oil",
 )
+
+# Manual buy protection: must be explicitly enabled in .env to allow manual buys from dashboard
+ALLOW_MANUAL_BUY = get_bool_env("ALLOW_MANUAL_BUY", False)

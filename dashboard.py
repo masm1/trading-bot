@@ -48,6 +48,8 @@ from config import (
     MARKET_OPEN_TIME,
     SIGNAL_DEMO_NOTIONAL_USD,
     looks_like_placeholder,
+    PAPER_TRADING,
+    ALLOW_MANUAL_BUY,
 )
 from mapping import PRICE_SYMBOL_MAP, IG_SEARCH_MAP
 
@@ -65,6 +67,7 @@ from logger import (
     get_dashboard_status,
     log_demo_order,
     log_event,
+    log_paper_trade,
 )
 
 app = Flask(__name__)
@@ -953,9 +956,18 @@ def api_manual_buy():
     payload = request.get_json(silent=True) or {}
     symbol = (payload.get("symbol") or "").strip().upper()
     notional_usd = payload.get("notional_usd", SIGNAL_DEMO_NOTIONAL_USD)
+    confirm = payload.get("confirm", False)
 
     if not symbol:
         return jsonify({"success": False, "message": "Missing symbol."}), 400
+
+    # Protect against accidental live buys: require PAPER_TRADING enabled and ALLOW_MANUAL_BUY set in .env
+    if not PAPER_TRADING or not ALLOW_MANUAL_BUY:
+        return jsonify({"success": False, "message": "Manual buys disabled on server. Set PAPER_TRADING=true and ALLOW_MANUAL_BUY=true in .env to enable."}), 403
+
+    # Optional client-side confirm required
+    if not confirm:
+        return jsonify({"success": False, "message": "Missing confirm flag. Set confirm=true to proceed."}), 400
 
     result = manual_buy_order(symbol, notional_usd)
     status_code = 200 if result.get("success") else 400
@@ -1003,6 +1015,35 @@ def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
     )
 
     return {"success": result.get("success", False), "message": message, "status": status}
+
+
+@app.route("/api/add-test-paper-trade", methods=["POST"])
+def api_add_test_paper_trade():
+    payload = request.get_json(silent=True) or {}
+    symbol = (payload.get("symbol") or "").strip().upper()
+    signal = (payload.get("signal") or "STRONG_RALLY").strip().upper()
+    change_percent = payload.get("change_percent", 1.0)
+    base_price = payload.get("base_price", "")
+    current_price = payload.get("current_price", "")
+
+    if not symbol:
+        return jsonify({"success": False, "message": "Missing symbol."}), 400
+
+    # Create a test paper trade row (no protections; this is for dev/debug only)
+    try:
+        log_paper_trade(
+            timestamp=datetime.now(),
+            symbol=symbol,
+            signal=signal,
+            paper_action=("CALL IDEA: test" if signal == "STRONG_RALLY" else "PUT IDEA: test"),
+            base_price=base_price,
+            current_price=current_price,
+            change_percent=change_percent,
+            notes="Created by dashboard test API",
+        )
+        return jsonify({"success": True, "message": "Test paper trade added."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 if __name__ == "__main__":

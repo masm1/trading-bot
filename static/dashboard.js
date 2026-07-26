@@ -182,10 +182,15 @@ function renderPaperTradeAction(value, item) {
 
 async function manualBuy(symbol) {
   try {
+    const notionalInput = document.getElementById("manualBuyNotional");
+    const notional = notionalInput ? Number(notionalInput.value) : undefined;
+    const payload = { symbol, confirm: true };
+    if (notional) payload.notional_usd = notional;
+
     const response = await fetch("/api/manual-buy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ symbol }),
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
     if (!response.ok || !data.success) {
@@ -645,3 +650,32 @@ render(window.initialData);
 startWatchlistAutoScroll();
 refresh();
 setInterval(refresh, 10000);
+
+  // Wire create test row button
+  const createTestRowBtn = document.getElementById("createTestRow");
+  if (createTestRowBtn) {
+    createTestRowBtn.addEventListener("click", async () => {
+      const symbol = prompt("Symbol for test row (e.g. TSLA):", "TSLA");
+      if (!symbol) return;
+      createTestRowBtn.disabled = true;
+      createTestRowBtn.textContent = "Creating...";
+      try {
+        const response = await fetch("/api/add-test-paper-trade", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ symbol: symbol.toUpperCase(), signal: "STRONG_RALLY", change_percent: 1.5 }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          alert(`Create test row failed: ${data.message || "Unknown error"}`);
+        } else {
+          refresh();
+        }
+      } catch (err) {
+        alert(`Create test row error: ${err}`);
+      } finally {
+        createTestRowBtn.disabled = false;
+        createTestRowBtn.textContent = "Create test row";
+      }
+    });
+  }
