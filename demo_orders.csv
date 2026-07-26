@@ -7,3 +7,12 @@ timestamp,symbol,epic,direction,size,status,deal_reference,deal_id,message
 2026-05-13 00:59:12+00:00,US Tech 100 Cash ($1),,CLOSE,8.18,STOP_LOSS_SENT,HXT9YBWDWQLTYKR,DIAAAAXE9N2DHAK,
 2026-05-13 00:59:13+00:00,Oil - US Crude ($1),,CLOSE,10.0,TAKE_PROFIT_SENT,PABYRL53TCQTYKR,DIAAAAXE9N2LDAK,
 2026-05-13 00:59:14+00:00,Spot Silver ($1),,CLOSE,10.0,TAKE_PROFIT_SENT,NB4P32Z2WDGTYKR,DIAAAAXE9N2MHAK,
+2026-05-14 01:34:30+00:00,No Lead Gasoline ($4.20),,CLOSE,1.0,STOP_LOSS_SENT,T4FCRKCXV24TYKR,DIAAAAXF6Q7L9AJ,
+2026-07-06 00:09:18+00:00,BTC,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.
+2026-07-06 00:09:18+00:00,OIL,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.
+2026-07-27 00:46:49+00:00,BTC,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.
+2026-07-27 00:46:49+00:00,OIL,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.
+2026-07-27 00:47:27+00:00,BTC,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.
+2026-07-27 00:47:28+00:00,OIL,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.
+2026-07-27 00:52:26+00:00,BTC,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.
+2026-07-27 00:52:26+00:00,OIL,,BUY,0.0,FAILED,,,Could not find a tradable IG market for this search term.

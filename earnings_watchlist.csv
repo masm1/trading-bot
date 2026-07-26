@@ -1,7 +1,16 @@
 symbol,earnings_datetime,active,notes
-HIMS,2026-05-12 02:30,yes,Hims & Hers | release 2026-05-11 21:00 GMT | presentation 2026-05-11 22:00 GMT
-MARA,2026-05-12 02:30,yes,MARA Holdings | release 2026-05-11 21:00 GMT | presentation 2026-05-11 22:00 GMT
-ONON,2026-05-12 15:30,yes,On Holdings | release 2026-05-12 10:00 GMT | presentation 2026-05-12 13:00 GMT
-CSCO,2026-05-14 02:30,yes,Cisco Systems | release 2026-05-13 21:00 GMT | presentation 2026-05-13 22:00 GMT
-AMAT,2026-05-15 02:30,yes,Applied Materials | release 2026-05-14 21:00 GMT | presentation 2026-05-14 22:00 GMT
-NU,2026-05-15 02:30,yes,Nu Holdings | release 2026-05-14 21:00 GMT | presentation 2026-05-14 22:00 GMT
+UAL,2026-07-15 16:00,yes,United Airlines Holdings | earnings presentation 17:00 ET after market close
+NFLX,2026-07-16 16:00,yes,Netflix | earnings presentation 17:00 ET after market close
+AA,2026-07-16 16:00,yes,Alcoa Corporation | earnings presentation 17:00 ET after market close
+STLD,2026-07-20 16:30,yes,Steel Dynamics | earnings presentation 17:00 ET after market close
+IBKR,2026-07-21 16:00,yes,Interactive Brokers Group | earnings presentation 17:00 ET after market close
+APLD,2026-07-21 16:00,yes,Applied Digital Corporation | earnings presentation 17:00 ET after market close
+TSLA,2026-07-22 16:00,yes,Tesla | earnings presentation 17:00 ET after market close
+IBM,2026-07-22 16:00,yes,International Business Machines | earnings presentation 17:00 ET after market close
+INTC,2026-07-23 16:00,yes,Intel Corporation | earnings presentation 17:00 ET after market close
+AXP,2026-07-24 07:00,yes,American Express Company | earnings presentation 08:00 ET before market open
+UHS,2026-07-27 16:15,yes,Universal Health Services | earnings presentation 17:00 ET after market close
+LUMN,2026-07-28 16:00,yes,Lumen Technologies | earnings presentation 17:00 ET after market close
+SBUX,2026-07-28 16:00,yes,Starbucks Corporation | earnings presentation 17:00 ET after market close
+QCOM,2026-07-29 16:00,yes,Qualcomm Incorporated | earnings presentation 17:00 ET after market close
+RIVN,2026-07-30 16:00,yes,Rivian Automotive | earnings presentation 17:00 ET after market close

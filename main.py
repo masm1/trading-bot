@@ -24,6 +24,18 @@ CYCLE_DELAY = 30
 SYMBOL_DELAY = 2
 
 
+def readable_market_stage(stage):
+    labels = {
+        "MARKET_CLOSED_WEEKEND": "Market closed for the weekend.",
+        "WAITING_FOR_MARKET_OPEN": "Waiting for market open.",
+        "SAVE_BASE_PRICE": "Saving base prices.",
+        "WAITING_FOR_SIGNAL_WINDOW": "Waiting for the signal window.",
+        "CHECK_MARKET_OPEN_SIGNAL": "Checking market-open signals.",
+        "MARKET_OPEN_WINDOW_COMPLETE": "Market-open signal window complete.",
+    }
+    return labels.get(stage, stage)
+
+
 def run_earnings_cycle(tracker, now):
     watch_items = load_watchlist()
 
@@ -111,7 +123,7 @@ def main():
             if MARKET_OPEN_AUTO_MODE:
                 market_stage = get_market_open_stage(now)
                 signal_candidates = run_market_open_cycle(tracker, now, market_stage)
-                cycle_note = f" Market stage={market_stage}."
+                cycle_note = f" {readable_market_stage(market_stage)}"
             else:
                 signal_candidates = run_earnings_cycle(tracker, now)
 

@@ -18,7 +18,7 @@ except ImportError:
 if sys.stdout.encoding != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -29,6 +29,7 @@ from demo_trader import (
     place_top_trend_buy_order,
     print_open_positions,
     run_demo_trade_plan,
+    _calculate_demo_size,
 )
 from tracker import PriceTracker
 from watchlist import get_event_stage, load_watchlist
@@ -45,9 +46,10 @@ from config import (
     LIVE_MARKET_SYMBOLS,
     MARKET_OPEN_AUTO_MODE,
     MARKET_OPEN_TIME,
+    SIGNAL_DEMO_NOTIONAL_USD,
     looks_like_placeholder,
 )
-from mapping import PRICE_SYMBOL_MAP
+from mapping import PRICE_SYMBOL_MAP, IG_SEARCH_MAP
 
 from logger import (
     CLOSED_POSITIONS_FILE,
@@ -61,6 +63,7 @@ from logger import (
     get_last_update,
     fetch_row_count,
     get_dashboard_status,
+    log_demo_order,
     log_event,
 )
 
@@ -553,14 +556,39 @@ def bot_status_details(heartbeat):
             "age_seconds": None,
         }
 
-    age_seconds = max(int((datetime.utcnow() - ts).total_seconds()), 0)
+    now = datetime.utcnow() if ts.tzinfo is not None else datetime.now()
+    age_seconds = max(int((now - ts).total_seconds()), 0)
     state = "fresh" if age_seconds <= 120 else "stale"
+    message = readable_bot_status_message(heartbeat.get("notes", ""))
+    if state == "stale" and message:
+        message = f"Stale heartbeat. Last status: {message}"
+
     return {
         "timestamp": timestamp,
-        "message": heartbeat.get("notes", ""),
+        "message": message,
         "state": state,
         "age_seconds": age_seconds,
     }
+
+
+def readable_bot_status_message(notes):
+    if not notes:
+        return ""
+
+    stage_labels = {
+        "MARKET_CLOSED_WEEKEND": "Market closed for the weekend.",
+        "WAITING_FOR_MARKET_OPEN": "Waiting for market open.",
+        "SAVE_BASE_PRICE": "Saving base prices.",
+        "WAITING_FOR_SIGNAL_WINDOW": "Waiting for the signal window.",
+        "CHECK_MARKET_OPEN_SIGNAL": "Checking market-open signals.",
+        "MARKET_OPEN_WINDOW_COMPLETE": "Market-open signal window complete.",
+    }
+
+    for stage, label in stage_labels.items():
+        if stage in notes:
+            return label
+
+    return notes
 
 
 def dashboard_price_ticker(watchlist_rows):
@@ -918,6 +946,63 @@ def index():
 @app.route("/api/dashboard")
 def api_dashboard():
     return jsonify(dashboard_data())
+
+
+@app.route("/api/manual-buy", methods=["POST"])
+def api_manual_buy():
+    payload = request.get_json(silent=True) or {}
+    symbol = (payload.get("symbol") or "").strip().upper()
+    notional_usd = payload.get("notional_usd", SIGNAL_DEMO_NOTIONAL_USD)
+
+    if not symbol:
+        return jsonify({"success": False, "message": "Missing symbol."}), 400
+
+    result = manual_buy_order(symbol, notional_usd)
+    status_code = 200 if result.get("success") else 400
+    return jsonify(result), status_code
+
+
+def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
+    ig = IGService()
+    if not ig.login():
+        return {"success": False, "message": "IG login failed."}
+
+    search_term = IG_SEARCH_MAP.get(symbol, symbol)
+    epic = ig.search_market(search_term)
+    if not epic:
+        return {"success": False, "message": f"Could not find IG market for {symbol}."}
+
+    current_price = ig.get_price_for_symbol(symbol, epic)
+    size = _calculate_demo_size(current_price, notional_usd)
+    if size is None:
+        return {"success": False, "message": "Could not calculate buy size from current price."}
+
+    result = ig.place_demo_market_order(epic=epic, direction="BUY", size=size)
+    status = "MANUAL_BUY_SENT" if result.get("success") else "MANUAL_BUY_FAILED"
+    message = result.get("message", "")
+    deal_reference = result.get("deal_reference", "")
+    deal_id = result.get("deal_id", "")
+
+    log_demo_order(
+        timestamp=datetime.now(),
+        symbol=symbol,
+        epic=epic,
+        direction="BUY",
+        size=size,
+        status=status,
+        deal_reference=deal_reference,
+        deal_id=deal_id,
+        message=message,
+    )
+    log_event(
+        timestamp=datetime.now(),
+        symbol=symbol,
+        event=f"MANUAL_BUY_{status}",
+        paper_action="Manual BUY from dashboard",
+        notes=message,
+    )
+
+    return {"success": result.get("success", False), "message": message, "status": status}
 
 
 if __name__ == "__main__":

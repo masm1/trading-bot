@@ -111,6 +111,58 @@ function eventBadge(value) {
   return pill;
 }
 
+function renderPaperTradeAction(value, item) {
+  const symbol = text(item.symbol);
+  const signal = text(item.signal).toUpperCase();
+  const changePercent = number(item.change_percent);
+  const eligible = symbol && (signal === "STRONG_RALLY" || changePercent > 0);
+
+  if (!eligible) {
+    const empty = document.createElement("span");
+    empty.textContent = "-";
+    return empty;
+  }
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "refresh-button";
+  button.textContent = "Buy";
+  button.dataset.symbol = symbol;
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    const originalText = button.textContent;
+    button.textContent = "Buying...";
+    const success = await manualBuy(symbol);
+    button.textContent = success ? "Bought" : originalText;
+    if (!success) {
+      button.disabled = false;
+    }
+  });
+
+  return button;
+}
+
+async function manualBuy(symbol) {
+  try {
+    const response = await fetch("/api/manual-buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ symbol }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      alert(`Buy failed: ${data.message || "Unknown error"}`);
+      return false;
+    }
+    refresh();
+    return true;
+  } catch (error) {
+    alert(`Buy request failed: ${error}`);
+    return false;
+  }
+}
+
 function setRows(body, rows, columns, emptyText) {
   body.replaceChildren();
 
@@ -448,6 +500,7 @@ function render(data) {
       { key: "signal", render: badge },
       { key: "paper_action" },
       { key: "change_percent", format: signedPercent, className: moneyClass },
+      { key: "action", render: renderPaperTradeAction },
     ],
     "No active watchlist windows available for CALL/PUT ideas yet."
   );
