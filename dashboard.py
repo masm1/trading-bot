@@ -993,10 +993,26 @@ def api_manual_buy():
     # Allowlist check: only configured IPs can perform manual buys
     client_ip = request.remote_addr or "unknown"
     if not _client_ip_allowed(client_ip):
+        # Log blocked attempt for auditing
+        log_event(
+            timestamp=datetime.now(),
+            symbol=symbol or "MANUAL_BUY",
+            event="MANUAL_BUY_BLOCKED_IP",
+            paper_action="Manual buy blocked - IP not allowed",
+            notes=f"IP:{client_ip}",
+        )
         return jsonify({"success": False, "message": f"IP {client_ip} not allowed to perform manual buys."}), 403
 
     # Rate limit per IP
     if not _rate_limit_ok(client_ip):
+        # Log rate-limited attempt for auditing
+        log_event(
+            timestamp=datetime.now(),
+            symbol=symbol or "MANUAL_BUY",
+            event="MANUAL_BUY_RATE_LIMIT",
+            paper_action="Manual buy blocked - rate limit",
+            notes=f"IP:{client_ip}",
+        )
         return jsonify({"success": False, "message": "Rate limit exceeded for manual buys. Try again later."}), 429
 
     result = manual_buy_order(symbol, notional_usd)
