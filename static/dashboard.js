@@ -731,3 +731,33 @@ setInterval(refresh, 10000);
       }
     });
   }
+  const clearTestRowsBtn = document.getElementById("clearTestRows");
+  if (clearTestRowsBtn) {
+    clearTestRowsBtn.addEventListener("click", async () => {
+      const confirmed = window.confirm(
+        "Clear all dashboard-created test paper trade rows? This cannot be undone."
+      );
+      if (!confirmed) return;
+
+      clearTestRowsBtn.disabled = true;
+      clearTestRowsBtn.textContent = "Clearing...";
+      try {
+        const response = await fetch("/api/clear-test-paper-trades", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          alert(`Clear test rows failed: ${data.message || "Unknown error"}`);
+        } else {
+          refresh();
+        }
+      } catch (err) {
+        alert(`Clear test rows error: ${err}`);
+      } finally {
+        clearTestRowsBtn.disabled = false;
+        clearTestRowsBtn.textContent = "Clear test rows";
+      }
+    });
+  }

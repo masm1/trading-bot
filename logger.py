@@ -98,6 +98,14 @@ def _ensure_csv_file(path, fieldnames):
         _backup_and_recreate(path, fieldnames)
 
 
+def replace_csv_rows(path, rows, fieldnames):
+    with path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({key: row.get(key, "") for key in fieldnames})
+
+
 def format_timestamp(value):
     if value is None:
         value = datetime.now(timezone.utc)

@@ -220,9 +220,10 @@
             </label>
             <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;">
               <span style="font-weight:800;">Notional $</span>
-              <input id="manualBuyNotional" type="number" step="1" min="1" value="{{ data.config_status.auto_demo_trading and %d or 500 }}" style="width:90px;padding:6px;border-radius:6px;border:1px solid var(--line);background:var(--panel-soft);color:var(--text);" />
+              <input id="manualBuyNotional" type="number" step="1" min="1" value="500" style="width:90px;padding:6px;border-radius:6px;border:1px solid var(--line);background:var(--panel-soft);color:var(--text);" />
             </label>
             <button id="createTestRow" class="refresh-button" type="button">Create test row</button>
+            <button id="clearTestRows" class="refresh-button" type="button">Clear test rows</button>
             <span class="count-pill" id="paperTradeCount">{{ data.paper_trade_count }}</span>
           </div>
         </div>
