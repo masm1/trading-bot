@@ -55,6 +55,7 @@ from config import (
     MANUAL_BUY_RATE_LIMIT_MAX,
 )
 from mapping import PRICE_SYMBOL_MAP, IG_SEARCH_MAP
+from db import replace_rows
 
 from logger import (
     CLOSED_POSITIONS_FILE,
