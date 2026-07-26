@@ -2,7 +2,6 @@ requests
 python-dotenv
 flask
 flask-cors
-kivy
 pandas
 numpy
 scikit-learn
