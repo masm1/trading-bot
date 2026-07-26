@@ -166,15 +166,50 @@ function renderPaperTradeAction(value, item) {
   button.textContent = "Buy";
   button.dataset.symbol = symbol;
 
-  button.addEventListener("click", async () => {
-    button.disabled = true;
-    const originalText = button.textContent;
-    button.textContent = "Buying...";
-    const success = await manualBuy(symbol);
-    button.textContent = success ? "Bought" : originalText;
-    if (!success) {
-      button.disabled = false;
+  button.addEventListener("click", () => {
+    const modal = document.getElementById("buyConfirmModal");
+    const body = document.getElementById("buyConfirmBody");
+    const cancelBtn = document.getElementById("buyCancelBtn");
+    const confirmBtn = document.getElementById("buyConfirmBtn");
+    const notionalInput = document.getElementById("manualBuyNotional");
+    const notional = notionalInput ? Number(notionalInput.value) : undefined;
+
+    if (!modal || !body || !cancelBtn || !confirmBtn) {
+      // fallback to direct buy
+      manualBuy(symbol);
+      return;
     }
+
+    body.textContent = `Confirm BUY ${symbol}` + (notional ? ` for approx $${notional}` : "") + "?";
+    modal.style.display = "flex";
+
+    const cleanup = () => {
+      modal.style.display = "none";
+      cancelBtn.removeEventListener("click", onCancel);
+      confirmBtn.removeEventListener("click", onConfirm);
+    };
+
+    const onCancel = () => {
+      cleanup();
+    };
+
+    const onConfirm = async () => {
+      confirmBtn.disabled = true;
+      try {
+        const success = await manualBuy(symbol);
+        if (success) {
+          cleanup();
+        } else {
+          confirmBtn.disabled = false;
+        }
+      } catch (e) {
+        alert(`Buy failed: ${e}`);
+        confirmBtn.disabled = false;
+      }
+    };
+
+    cancelBtn.addEventListener("click", onCancel);
+    confirmBtn.addEventListener("click", onConfirm);
   });
 
   return button;

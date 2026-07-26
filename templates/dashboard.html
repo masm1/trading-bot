@@ -309,5 +309,16 @@
         .catch(err => console.log('Service Worker registration failed'));
     }
   </script>
+  <!-- Manual Buy Confirmation Modal -->
+  <div id="buyConfirmModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+    <div style="background:var(--panel);padding:18px;border-radius:8px;min-width:320px;max-width:520px;color:var(--text);">
+      <h3 style="margin:0 0 10px;">Confirm Manual Buy</h3>
+      <div id="buyConfirmBody" style="margin-bottom:12px;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button id="buyCancelBtn" class="refresh-button" type="button">Cancel</button>
+        <button id="buyConfirmBtn" class="refresh-button" type="button">Confirm Buy</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

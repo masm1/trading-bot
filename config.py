@@ -95,3 +95,7 @@ LIVE_MARKET_SYMBOLS = get_env(
 
 # Manual buy protection: must be explicitly enabled in .env to allow manual buys from dashboard
 ALLOW_MANUAL_BUY = get_bool_env("ALLOW_MANUAL_BUY", False)
+MANUAL_BUY_ALLOWLIST = get_env("MANUAL_BUY_ALLOWLIST", "")
+# Rate limit for manual buys per IP: window seconds and max requests within window
+MANUAL_BUY_RATE_LIMIT_WINDOW_SECONDS = int(get_env("MANUAL_BUY_RATE_LIMIT_WINDOW_SECONDS", "60"))
+MANUAL_BUY_RATE_LIMIT_MAX = int(get_env("MANUAL_BUY_RATE_LIMIT_MAX", "3"))

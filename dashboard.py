@@ -50,6 +50,9 @@ from config import (
     looks_like_placeholder,
     PAPER_TRADING,
     ALLOW_MANUAL_BUY,
+    MANUAL_BUY_ALLOWLIST,
+    MANUAL_BUY_RATE_LIMIT_WINDOW_SECONDS,
+    MANUAL_BUY_RATE_LIMIT_MAX,
 )
 from mapping import PRICE_SYMBOL_MAP, IG_SEARCH_MAP
 
@@ -69,6 +72,29 @@ from logger import (
     log_event,
     log_paper_trade,
 )
+
+# Simple in-memory rate limiter and allowlist helpers for manual buys
+_manual_buy_requests = {}
+
+def _client_ip_allowed(ip):
+    allowlist = [s.strip() for s in (MANUAL_BUY_ALLOWLIST or "").split(',') if s.strip()]
+    if not allowlist:
+        # No allowlist configured -> block by default
+        return False
+    return ip in allowlist
+
+def _rate_limit_ok(ip):
+    now = int(time.time())
+    window = MANUAL_BUY_RATE_LIMIT_WINDOW_SECONDS
+    maxreq = MANUAL_BUY_RATE_LIMIT_MAX
+    lst = _manual_buy_requests.setdefault(ip, [])
+    # prune old
+    while lst and lst[0] <= now - window:
+        lst.pop(0)
+    if len(lst) >= maxreq:
+        return False
+    lst.append(now)
+    return True
 
 app = Flask(__name__)
 CORS(app)
@@ -956,7 +982,6 @@ def api_manual_buy():
     payload = request.get_json(silent=True) or {}
     symbol = (payload.get("symbol") or "").strip().upper()
     notional_usd = payload.get("notional_usd", SIGNAL_DEMO_NOTIONAL_USD)
-    confirm = payload.get("confirm", False)
 
     if not symbol:
         return jsonify({"success": False, "message": "Missing symbol."}), 400
@@ -965,9 +990,14 @@ def api_manual_buy():
     if not PAPER_TRADING or not ALLOW_MANUAL_BUY:
         return jsonify({"success": False, "message": "Manual buys disabled on server. Set PAPER_TRADING=true and ALLOW_MANUAL_BUY=true in .env to enable."}), 403
 
-    # Optional client-side confirm required
-    if not confirm:
-        return jsonify({"success": False, "message": "Missing confirm flag. Set confirm=true to proceed."}), 400
+    # Allowlist check: only configured IPs can perform manual buys
+    client_ip = request.remote_addr or "unknown"
+    if not _client_ip_allowed(client_ip):
+        return jsonify({"success": False, "message": f"IP {client_ip} not allowed to perform manual buys."}), 403
+
+    # Rate limit per IP
+    if not _rate_limit_ok(client_ip):
+        return jsonify({"success": False, "message": "Rate limit exceeded for manual buys. Try again later."}), 429
 
     result = manual_buy_order(symbol, notional_usd)
     status_code = 200 if result.get("success") else 400
