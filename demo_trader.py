@@ -30,7 +30,7 @@ from logger import (
     set_dashboard_status,
     write_open_positions,
 )
-from mapping import IG_SEARCH_MAP
+from mapping import EPIC_MAP, IG_SEARCH_MAP
 from strategy import demo_direction_for_signal, signal_score
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -127,7 +127,9 @@ def run_demo_trade_plan(ig_service):
         size = plan.size
         notional_note = ""
         print(f"Preparing demo trade: {plan.symbol} {plan.direction}")
-        epic = ig_service.search_market(plan.search_term)
+        epic = EPIC_MAP.get(plan.symbol)
+        if not epic:
+            epic = ig_service.search_market(plan.search_term)
         if not epic:
             message = "Could not find a tradable IG market for this search term."
             print(f"{plan.symbol}: {message}")
@@ -248,7 +250,9 @@ def place_demo_order_from_signal(ig_service, signal_info):
         f"signal={signal} | direction={direction} | approx ${SIGNAL_DEMO_NOTIONAL_USD} | size={size}"
     )
 
-    epic = ig_service.search_market(search_term)
+    epic = EPIC_MAP.get(symbol)
+    if not epic:
+        epic = ig_service.search_market(search_term)
     if not epic:
         message = "Could not find IG market for signal demo order."
         print(f"{symbol}: {message}")
@@ -379,7 +383,9 @@ def place_trend_buy_order_from_signal(ig_service, signal_info):
         f"BUY approx ${TREND_BUY_MAX_NOTIONAL_USD:g} | size={size}"
     )
 
-    epic = ig_service.search_market(search_term)
+    epic = EPIC_MAP.get(symbol)
+    if not epic:
+        epic = ig_service.search_market(search_term)
     if not epic:
         message = "Could not find IG market for trend buy order."
         print(f"{symbol}: {message}")
