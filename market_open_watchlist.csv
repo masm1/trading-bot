@@ -1,4 +1,7 @@
 symbol,active,notes
-AAPL,yes,Market open auto candidate
-MSFT,yes,Market open auto candidate
-NVDA,yes,Market open auto candidate
+SPY,yes,Market open auto candidate
+QQQ,yes,Market open auto candidate
+DIA,yes,Market open auto candidate
+IWM,yes,Market open auto candidate
+GLD,yes,Market open auto candidate
+USO,yes,Market open auto candidate

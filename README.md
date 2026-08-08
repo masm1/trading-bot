@@ -204,13 +204,16 @@ Then edit:
 market_open_watchlist.csv
 ```
 
-Use exactly three active shares if you only want three shares considered:
+Use the active symbols you want considered:
 
 ```text
 symbol,active,notes
-AAPL,yes,Market open auto candidate
-MSFT,yes,Market open auto candidate
-NVDA,yes,Market open auto candidate
+SPY,yes,Market open auto candidate
+QQQ,yes,Market open auto candidate
+DIA,yes,Market open auto candidate
+IWM,yes,Market open auto candidate
+GLD,yes,Market open auto candidate
+USO,yes,Market open auto candidate
 ```
 
 The bot saves base prices during the first few minutes after open, checks signals from 15 to 90 minutes after open, ranks eligible signals, and sends no more than `MAX_SIGNAL_DEMO_TRADES_PER_ROUND` demo orders.

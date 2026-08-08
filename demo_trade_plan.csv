@@ -1,7 +1,7 @@
 symbol,search_term,direction,size,notional_usd,active,notes
-BTC,Bitcoin,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
-ETH,Ethereum,BUY,0.1,,no,Ethereum demo example. Size may need adjustment.
-OIL,US Crude,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
-GOLD,Gold,BUY,1,,no,Gold example. Size may need adjustment for IG rules.
-SILVER,Silver,BUY,1,,no,Silver example. Size may need adjustment for IG rules.
-AAPL,AAPL,BUY,1,,no,Stock example. IG EPIC availability depends on your account.
+SPY,SPDR S&P 500 ETF,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
+QQQ,Invesco QQQ Trust,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
+DIA,SPDR Dow Jones Industrial Average ETF,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
+IWM,iShares Russell 2000 ETF,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
+GLD,SPDR Gold Shares,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
+USO,United States Oil Fund,BUY,0,500,yes,Auto demo trade using approx 500 USD notional.
