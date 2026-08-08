@@ -140,6 +140,7 @@ TRADE_LOG_MAX_AGE = timedelta(hours=24)
 PRICE_TICKER_CACHE_SECONDS = 60
 PRICE_TICKER_CACHE = {
     "updated_at": 0,
+    "symbols": [],
     "rows": [],
 }
 LIVE_MARKETS_CACHE_SECONDS = 60
@@ -628,7 +629,11 @@ def readable_bot_status_message(notes):
 
 def dashboard_price_ticker(watchlist_rows):
     now = time.time()
-    if now - PRICE_TICKER_CACHE["updated_at"] < PRICE_TICKER_CACHE_SECONDS:
+    symbols = [(item.get("symbol") or "").strip().upper() for item in watchlist_rows]
+    if (
+        now - PRICE_TICKER_CACHE["updated_at"] < PRICE_TICKER_CACHE_SECONDS
+        and PRICE_TICKER_CACHE.get("symbols") == symbols
+    ):
         return PRICE_TICKER_CACHE["rows"]
 
     rows = []
@@ -649,6 +654,7 @@ def dashboard_price_ticker(watchlist_rows):
         )
 
     PRICE_TICKER_CACHE["updated_at"] = now
+    PRICE_TICKER_CACHE["symbols"] = symbols
     PRICE_TICKER_CACHE["rows"] = rows
     return rows
 
