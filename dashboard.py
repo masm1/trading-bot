@@ -59,6 +59,7 @@ from config import (
     looks_like_placeholder,
     PAPER_TRADING,
     ALLOW_MANUAL_BUY,
+    ENV_FILE,
     MANUAL_BUY_ALLOWLIST,
     MANUAL_BUY_RATE_LIMIT_WINDOW_SECONDS,
     MANUAL_BUY_RATE_LIMIT_MAX,
@@ -84,6 +85,31 @@ from logger import (
 
 # Simple in-memory rate limiter and allowlist helpers for manual buys
 _manual_buy_requests = {}
+
+
+def _write_env_value(name, value):
+    line = f"{name}={value}"
+    if ENV_FILE.exists():
+        lines = ENV_FILE.read_text(encoding="utf-8").splitlines()
+    else:
+        lines = []
+
+    updated = False
+    next_lines = []
+    for existing in lines:
+        stripped = existing.strip()
+        if stripped and not stripped.startswith("#") and stripped.split("=", 1)[0].strip() == name:
+            next_lines.append(line)
+            updated = True
+        else:
+            next_lines.append(existing)
+
+    if not updated:
+        if next_lines and next_lines[-1].strip():
+            next_lines.append("")
+        next_lines.append(line)
+
+    ENV_FILE.write_text("\n".join(next_lines) + "\n", encoding="utf-8")
 
 def _client_ip_allowed(ip):
     allowlist = [s.strip() for s in (MANUAL_BUY_ALLOWLIST or "").split(',') if s.strip()]
@@ -1247,6 +1273,28 @@ def index():
 @app.route("/api/dashboard")
 def api_dashboard():
     return jsonify(dashboard_data())
+
+
+@app.route("/api/watchlist-mode", methods=["POST"])
+def api_watchlist_mode():
+    global MARKET_OPEN_AUTO_MODE
+
+    payload = request.get_json(silent=True) or {}
+    requested = payload.get("market_open_auto_mode")
+    if not isinstance(requested, bool):
+        return jsonify({"success": False, "message": "market_open_auto_mode must be true or false."}), 400
+
+    MARKET_OPEN_AUTO_MODE = requested
+    _write_env_value("MARKET_OPEN_AUTO_MODE", "true" if requested else "false")
+
+    mode = "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings"
+    log_event(
+        timestamp=datetime.now(),
+        symbol="SYSTEM",
+        event="WATCHLIST_MODE_CHANGED",
+        notes=f"Dashboard watchlist mode changed to {mode}.",
+    )
+    return jsonify({"success": True, "message": f"Watchlist mode set to {mode}.", "data": dashboard_data()})
 
 
 @app.route("/api/manual-buy", methods=["POST"])

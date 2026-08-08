@@ -10,6 +10,7 @@ const positionCount = document.getElementById("positionCount");
 const openPositionPill = document.getElementById("openPositionPill");
 const plSummary = document.getElementById("plSummary");
 const refreshButton = document.getElementById("refreshButton");
+const modeButtons = Array.from(document.querySelectorAll("[data-market-mode]"));
 const lastUpdateEl = document.getElementById("lastUpdate");
 const tradeLogCountEl = document.getElementById("tradeLogCount");
 const demoOrderCountEl = document.getElementById("demoOrderCount");
@@ -119,6 +120,42 @@ function badge(value) {
   pill.className = `badge ${badgeClass(value)}`;
   pill.textContent = text(value);
   return pill;
+}
+
+function setModeButtons(data) {
+  const enabled = Boolean(data.config_status?.market_open_auto_mode);
+  modeButtons.forEach((button) => {
+    const selected = button.dataset.marketMode === String(enabled);
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
+}
+
+async function updateWatchlistMode(enabled) {
+  try {
+    modeButtons.forEach((button) => {
+      button.disabled = true;
+    });
+    const response = await fetch("/api/watchlist-mode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ market_open_auto_mode: enabled }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.success) {
+      throw new Error(payload.message || `Mode update failed with ${response.status}`);
+    }
+    render(payload.data);
+  } catch (error) {
+    if (serviceStatusEl) {
+      serviceStatusEl.textContent = `Watchlist mode update failed: ${error.message || error}`;
+      serviceStatusEl.style.display = "block";
+    }
+  } finally {
+    modeButtons.forEach((button) => {
+      button.disabled = false;
+    });
+  }
 }
 
 function toneBadge(value, tone) {
@@ -828,6 +865,7 @@ function render(data) {
   if (netPlEl) netPlEl.textContent = money(data.net_pl);
   if (winRateEl) winRateEl.textContent = `${number(data.win_rate).toFixed(1)}% win rate`;
   updateMetricCard(netPlEl, data.net_pl);
+  setModeButtons(data);
 
   renderCommandCenter(data);
   renderDiscovery(data.market_discovery);
@@ -1029,6 +1067,11 @@ async function refresh() {
 }
 
 if (refreshButton) refreshButton.addEventListener("click", refresh);
+modeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    updateWatchlistMode(button.dataset.marketMode === "true");
+  });
+});
 try {
   render(window.initialData || {});
 } catch (error) {

@@ -46,6 +46,14 @@ body {
   padding: 18px 0 22px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -99,6 +107,37 @@ body {
   padding: 0 14px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.mode-switch {
+  display: inline-flex;
+  min-height: 40px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.mode-switch-button {
+  min-width: 94px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.mode-switch-button.active {
+  background: rgba(72, 199, 176, 0.16);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(72, 199, 176, 0.45);
+}
+
+.mode-switch-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .refresh-button:hover {
@@ -1256,6 +1295,16 @@ tr:last-child td {
   .refresh-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .topbar-actions,
+  .mode-switch {
+    width: 100%;
+  }
+
+  .mode-switch-button {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .overview,

@@ -19,7 +19,11 @@
           <h1>Trading Bot Dashboard</h1>
         </div>
       </div>
-      <div>
+      <div class="topbar-actions">
+        <div class="mode-switch" aria-label="Watchlist mode">
+          <button id="modeEarnings" class="mode-switch-button" type="button" data-market-mode="false">Earnings</button>
+          <button id="modeMarketOpen" class="mode-switch-button" type="button" data-market-mode="true">Market Open</button>
+        </div>
         <button id="refreshButton" class="refresh-button" type="button" title="Refresh dashboard">
           <span class="refresh-icon" aria-hidden="true"></span>
           Refresh
