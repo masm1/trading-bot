@@ -31,6 +31,13 @@ const stageFlowEl = document.getElementById("stageFlow");
 const priceTickerEl = document.getElementById("priceTicker");
 const liveMarketsGridEl = document.getElementById("liveMarketsGrid");
 const liveMarketsPillEl = document.getElementById("liveMarketsPill");
+const autoBuyReadinessEl = document.getElementById("autoBuyReadiness");
+const autoBuyStatusGridEl = document.getElementById("autoBuyStatusGrid");
+const candidateListEl = document.getElementById("candidateList");
+const candidateCountEl = document.getElementById("candidateCount");
+const positionCardsEl = document.getElementById("positionCards");
+const closedPositionCardsEl = document.getElementById("closedPositionCards");
+const demoOrderCardsEl = document.getElementById("demoOrderCards");
 let plChart;
 let watchlistScrollFrame;
 let watchlistScrollPaused = false;
@@ -89,6 +96,12 @@ function badge(value) {
   const pill = document.createElement("span");
   pill.className = `badge ${badgeClass(value)}`;
   pill.textContent = text(value);
+  return pill;
+}
+
+function toneBadge(value, tone) {
+  const pill = badge(value);
+  if (tone) pill.classList.add(`tone_${tone}`);
   return pill;
 }
 
@@ -438,6 +451,136 @@ function renderLiveMarkets(rows) {
   });
 }
 
+function renderAutoBuyStatus(status) {
+  if (!autoBuyStatusGridEl) return;
+  const details = status || {};
+  autoBuyStatusGridEl.replaceChildren();
+
+  if (autoBuyReadinessEl) {
+    autoBuyReadinessEl.textContent = details.readiness || "Unknown";
+    autoBuyReadinessEl.className = `badge tone_${details.tone || "info"}`;
+  }
+
+  const items = [
+    ["Mode", details.mode || "Off", details.armed ? "good" : "danger"],
+    ["Market", details.market_mode || "-"],
+    ["Stage", readableEvent(details.stage || "-"), details.tone || "info"],
+    ["Bot", readableEvent(details.bot_state || "unknown"), details.bot_state === "fresh" ? "good" : "warn"],
+    ["Max Notional", money(details.max_notional_usd)],
+    ["Min Quality", number(details.min_quality).toFixed(2)],
+    ["Trend Trigger", `${number(details.trend_buy_min_change_percent).toFixed(2)}%`],
+    ["Signal Window", details.signal_window || "-"],
+    ["Once Per Day", details.once_per_symbol_per_day ? "On" : "Off", details.once_per_symbol_per_day ? "good" : "warn"],
+    ["Manual Buy", details.manual_buy_enabled ? "Enabled" : "Disabled", details.manual_buy_enabled ? "good" : "warn"],
+  ];
+
+  items.forEach(([label, value, tone]) => {
+    const item = document.createElement("div");
+    item.className = "status-item";
+    const labelEl = document.createElement("span");
+    const valueEl = document.createElement("strong");
+    labelEl.textContent = label;
+    valueEl.textContent = text(value);
+    if (tone) valueEl.className = `tone-${tone}`;
+    item.append(labelEl, valueEl);
+    autoBuyStatusGridEl.appendChild(item);
+  });
+}
+
+function renderCandidates(rows) {
+  if (!candidateListEl) return;
+  candidateListEl.replaceChildren();
+  const candidates = rows || [];
+  if (candidateCountEl) candidateCountEl.textContent = candidates.length;
+
+  if (candidates.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "candidate-empty";
+    empty.textContent = "No symbols in the current auto-buy watchlist.";
+    candidateListEl.appendChild(empty);
+    return;
+  }
+
+  candidates.forEach((item) => {
+    const node = document.createElement("article");
+    node.className = `candidate-row ${item.eligible ? "eligible" : "skipped"}`;
+
+    const rank = document.createElement("strong");
+    rank.className = "candidate-rank";
+    rank.textContent = `#${item.rank || "-"}`;
+
+    const main = document.createElement("div");
+    main.className = "candidate-main";
+    const title = document.createElement("div");
+    title.className = "candidate-title";
+    const symbol = document.createElement("strong");
+    symbol.textContent = item.symbol || "-";
+    const state = toneBadge(item.eligible ? "Ready" : "Skipped", item.eligible ? "good" : "warn");
+    title.append(symbol, state);
+
+    const meta = document.createElement("div");
+    meta.className = "candidate-meta";
+    meta.append(
+      badge(item.signal || "WAITING"),
+      document.createTextNode(`Change ${item.change_percent === "" ? "-" : signedPercent(item.change_percent)}`),
+      document.createTextNode(`Quality ${item.quality === "" ? "-" : number(item.quality).toFixed(2)}`),
+      document.createTextNode(`Route ${text(item.tradable_hint)}`)
+    );
+
+    const reason = document.createElement("small");
+    reason.textContent = item.reason || "-";
+
+    main.append(title, meta, reason);
+    node.append(rank, main);
+    candidateListEl.appendChild(node);
+  });
+}
+
+function mobileField(label, value, className) {
+  const field = document.createElement("div");
+  const labelEl = document.createElement("span");
+  const valueEl = document.createElement("strong");
+  labelEl.textContent = label;
+  valueEl.textContent = text(value);
+  if (className) valueEl.className = className;
+  field.append(labelEl, valueEl);
+  return field;
+}
+
+function renderMobileCards(container, rows, options) {
+  if (!container) return;
+  container.replaceChildren();
+  const dataRows = rows || [];
+  if (dataRows.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "mobile-empty";
+    empty.textContent = options.emptyText;
+    container.appendChild(empty);
+    return;
+  }
+
+  dataRows.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "mobile-data-card";
+    const header = document.createElement("div");
+    header.className = "mobile-card-header";
+    const title = document.createElement("strong");
+    title.textContent = options.title(item);
+    header.appendChild(title);
+    const headerBadge = options.badge ? options.badge(item) : null;
+    if (headerBadge) header.appendChild(headerBadge);
+
+    const grid = document.createElement("div");
+    grid.className = "mobile-card-grid";
+    options.fields.forEach((field) => {
+      grid.appendChild(mobileField(field.label, field.value(item), field.className ? field.className(item) : ""));
+    });
+
+    card.append(header, grid);
+    container.appendChild(card);
+  });
+}
+
 function filterWatchlistRows(rows) {
   const filter = tableFilters.watchlist;
   if (filter === "all") return rows;
@@ -542,6 +685,8 @@ function render(data) {
   renderStageFlow(data.watchlist_stage_summary);
   renderPriceTicker(data.price_ticker);
   renderLiveMarkets(data.live_markets);
+  renderAutoBuyStatus(data.auto_buy_status);
+  renderCandidates(data.auto_buy_candidates);
   renderChart(data);
 
   setRows(
@@ -572,6 +717,19 @@ function render(data) {
     ],
     "No open position snapshots yet."
   );
+  renderMobileCards(positionCardsEl, data.positions, {
+    emptyText: "No open demo positions.",
+    title: (item) => item.instrument || "Unknown position",
+    badge: (item) => badge(item.direction || "-"),
+    fields: [
+      { label: "Time", value: (item) => item.timestamp },
+      { label: "Size", value: (item) => item.size },
+      { label: "Open", value: (item) => item.open_level },
+      { label: "Current", value: (item) => item.current_price },
+      { label: "P/L", value: (item) => money(item.profit_loss), className: (item) => moneyClass(item.profit_loss) },
+      { label: "Currency", value: (item) => item.currency },
+    ],
+  });
 
   setRows(
     bodies.closedPositions,
@@ -588,6 +746,19 @@ function render(data) {
     ],
     "No closed demo positions yet."
   );
+  renderMobileCards(closedPositionCardsEl, data.closed_positions, {
+    emptyText: "No closed demo positions.",
+    title: (item) => item.instrument || "Closed position",
+    badge: (item) => badge(item.direction || "-"),
+    fields: [
+      { label: "Time", value: (item) => item.timestamp },
+      { label: "Size", value: (item) => item.size },
+      { label: "Open", value: (item) => item.open_level },
+      { label: "Close", value: (item) => item.current_price },
+      { label: "Final P/L", value: (item) => money(item.profit_loss), className: (item) => moneyClass(item.profit_loss) },
+      { label: "Currency", value: (item) => item.currency },
+    ],
+  });
 
   setRows(
     bodies.paperTrades,
@@ -615,6 +786,17 @@ function render(data) {
     ],
     "No demo orders yet."
   );
+  renderMobileCards(demoOrderCardsEl, data.demo_orders, {
+    emptyText: "No demo orders yet.",
+    title: (item) => item.symbol || "Order",
+    badge: (item) => badge(item.status || "-"),
+    fields: [
+      { label: "Time", value: (item) => item.timestamp },
+      { label: "Direction", value: (item) => item.direction },
+      { label: "Size", value: (item) => item.size },
+      { label: "Status", value: (item) => readableEvent(item.status || "-") },
+    ],
+  });
 
   if (serviceStatusEl) {
     if (data.ig_status) {

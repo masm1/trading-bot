@@ -42,11 +42,20 @@ from config import (
     AUTO_DEMO_TRADING,
     AUTO_SIGNAL_DEMO_TRADING,
     AUTO_TREND_BUY_TRADING,
+    CALL_SIGNAL_THRESHOLD_PERCENT,
+    DEMO_TRADE_ONCE_PER_SYMBOL_PER_DAY,
     FINNHUB_API_KEY,
+    MARKET_OPEN_BASE_MINUTES,
+    MARKET_OPEN_CHECK_END_MINUTES,
+    MARKET_OPEN_CHECK_START_MINUTES,
     LIVE_MARKET_SYMBOLS,
     MARKET_OPEN_AUTO_MODE,
     MARKET_OPEN_TIME,
+    MIN_SIGNAL_QUALITY,
+    SIGNAL_CANDIDATE_POOL_SIZE,
     SIGNAL_DEMO_NOTIONAL_USD,
+    TREND_BUY_MAX_NOTIONAL_USD,
+    TREND_BUY_MIN_CHANGE_PERCENT,
     looks_like_placeholder,
     PAPER_TRADING,
     ALLOW_MANUAL_BUY,
@@ -56,6 +65,7 @@ from config import (
 )
 from mapping import EPIC_MAP, PRICE_SYMBOL_MAP, IG_SEARCH_MAP
 from db import replace_rows
+from strategy import demo_direction_for_signal, detect_signal
 
 from logger import (
     CLOSED_POSITIONS_FILE,
@@ -690,6 +700,160 @@ def dashboard_live_markets():
     return rows
 
 
+def latest_signal_checks(limit=500):
+    rows = read_latest_db_rows("trade_log", TRADES_LOG_FILE, limit=limit)
+    latest = {}
+    for row in rows:
+        symbol = (row.get("symbol") or "").strip().upper()
+        event = (row.get("event") or "").strip().upper()
+        if not symbol or symbol == "SYSTEM" or event != "SIGNAL_CHECK":
+            continue
+        if symbol not in latest:
+            latest[symbol] = row
+    return latest
+
+
+def traded_today_symbols():
+    if not DEMO_TRADE_ONCE_PER_SYMBOL_PER_DAY:
+        return set()
+
+    today = datetime.now().date().isoformat()
+    traded = set()
+    rows = read_latest_db_rows("demo_orders", DEMO_ORDERS_FILE, limit=500)
+    valid_statuses = {
+        "SENT",
+        "SIGNAL_SENT",
+        "TREND_BUY_SENT",
+        "MANUAL_BUY_SENT",
+    }
+    for row in rows:
+        symbol = (row.get("symbol") or "").strip().upper()
+        status = (row.get("status") or "").strip().upper()
+        timestamp = row.get("timestamp") or ""
+        if symbol and status in valid_statuses and timestamp.startswith(today):
+            traded.add(symbol)
+    return traded
+
+
+def auto_buy_status(bot_status, watchlist_rows):
+    armed = bool(AUTO_SIGNAL_DEMO_TRADING or AUTO_TREND_BUY_TRADING)
+    stage = watchlist_rows[0].get("stage", "") if watchlist_rows else ""
+    if not armed:
+        readiness = "Disabled"
+        tone = "danger"
+    elif stage in ["CHECK_MARKET_OPEN_SIGNAL", "CHECK_T_PLUS_15", "CHECK_T_PLUS_30", "CHECK_T_PLUS_45"]:
+        readiness = "Signal Window"
+        tone = "good"
+    elif stage in ["SAVE_BASE_PRICE"]:
+        readiness = "Base Window"
+        tone = "warn"
+    else:
+        readiness = "Armed"
+        tone = "info"
+
+    return {
+        "armed": armed,
+        "readiness": readiness,
+        "tone": tone,
+        "mode": "Trend Buy" if AUTO_TREND_BUY_TRADING else ("Signal Orders" if AUTO_SIGNAL_DEMO_TRADING else "Off"),
+        "market_mode": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings",
+        "stage": stage or "Unknown",
+        "bot_state": bot_status.get("state", "unknown"),
+        "bot_message": bot_status.get("message", ""),
+        "watchlist_symbols": [row.get("symbol", "") for row in watchlist_rows],
+        "auto_demo_trading": AUTO_DEMO_TRADING,
+        "auto_signal_demo_trading": AUTO_SIGNAL_DEMO_TRADING,
+        "auto_trend_buy_trading": AUTO_TREND_BUY_TRADING,
+        "paper_trading": PAPER_TRADING,
+        "manual_buy_enabled": bool(PAPER_TRADING and ALLOW_MANUAL_BUY),
+        "market_open_time": MARKET_OPEN_TIME,
+        "base_window_minutes": MARKET_OPEN_BASE_MINUTES,
+        "signal_window": f"{MARKET_OPEN_CHECK_START_MINUTES}-{MARKET_OPEN_CHECK_END_MINUTES}m",
+        "min_quality": MIN_SIGNAL_QUALITY,
+        "trend_buy_min_change_percent": TREND_BUY_MIN_CHANGE_PERCENT,
+        "call_threshold_percent": CALL_SIGNAL_THRESHOLD_PERCENT,
+        "max_notional_usd": TREND_BUY_MAX_NOTIONAL_USD if AUTO_TREND_BUY_TRADING else SIGNAL_DEMO_NOTIONAL_USD,
+        "candidate_pool_size": SIGNAL_CANDIDATE_POOL_SIZE,
+        "once_per_symbol_per_day": DEMO_TRADE_ONCE_PER_SYMBOL_PER_DAY,
+    }
+
+
+def auto_buy_candidates(watchlist_rows, price_ticker):
+    signal_checks = latest_signal_checks()
+    traded_symbols = traded_today_symbols()
+    ticker_by_symbol = {
+        (row.get("symbol") or "").upper(): row
+        for row in price_ticker
+    }
+    rows = []
+
+    for item in watchlist_rows:
+        symbol = (item.get("symbol") or "").strip().upper()
+        stage = item.get("stage", "")
+        latest_check = signal_checks.get(symbol, {})
+        ticker = ticker_by_symbol.get(symbol, {})
+        base_price = to_float(latest_check.get("base_price"))
+        current_price = to_float(latest_check.get("current_price"))
+        result = None
+
+        if base_price is not None and current_price is not None:
+            result = detect_signal(base_price, current_price)
+
+        signal = result.get("signal") if result else (latest_check.get("signal") or "WAITING")
+        change_percent = result.get("change_percent") if result else latest_check.get("change_percent", "")
+        quality = result.get("quality") if result else ""
+        direction = demo_direction_for_signal(signal)
+        tradable_hint = "mapped" if symbol in EPIC_MAP else ("search" if symbol in IG_SEARCH_MAP else "unknown")
+        reason = ""
+        eligible = False
+
+        if not (AUTO_SIGNAL_DEMO_TRADING or AUTO_TREND_BUY_TRADING):
+            reason = "Auto trading is disabled."
+        elif symbol in traded_symbols:
+            reason = "Already traded today."
+        elif stage not in ["CHECK_MARKET_OPEN_SIGNAL", "CHECK_T_PLUS_15", "CHECK_T_PLUS_30", "CHECK_T_PLUS_45"]:
+            reason = f"Waiting for {stage.replace('_', ' ').title()}."
+        elif not result:
+            reason = "No signal check with base/current price yet."
+        elif AUTO_TREND_BUY_TRADING and signal != "STRONG_RALLY":
+            reason = "Trend buy only accepts strong rallies."
+        elif AUTO_TREND_BUY_TRADING and to_float(change_percent) < TREND_BUY_MIN_CHANGE_PERCENT:
+            reason = "Move is below trend buy threshold."
+        elif to_float(quality) is not None and to_float(quality) < MIN_SIGNAL_QUALITY:
+            reason = "Signal quality is below minimum."
+        elif AUTO_SIGNAL_DEMO_TRADING and direction != "BUY" and not AUTO_TREND_BUY_TRADING:
+            reason = "Signal would not create a buy order."
+        elif tradable_hint == "unknown":
+            reason = "No IG search mapping configured."
+        else:
+            eligible = True
+            reason = "Eligible for auto buy."
+
+        score_quality = to_float(quality) or 0
+        score_change = to_float(change_percent) or 0
+        rows.append(
+            {
+                "symbol": symbol,
+                "stage": stage,
+                "signal": signal,
+                "quality": quality,
+                "change_percent": change_percent,
+                "price": ticker.get("price", current_price if current_price is not None else ""),
+                "direction": "BUY" if eligible else (direction or ""),
+                "eligible": eligible,
+                "reason": reason,
+                "tradable_hint": tradable_hint,
+                "score": round(score_quality * 100 + max(score_change, 0), 2),
+                "last_signal_time": latest_check.get("timestamp", ""),
+            }
+        )
+
+    rows.sort(key=lambda row: (row["eligible"], row["score"], to_float(row["change_percent"]) or 0), reverse=True)
+    for index, row in enumerate(rows, start=1):
+        row["rank"] = index
+    return rows
+
+
 def fetch_price_quote(symbol):
     if requests is None:
         return latest_logged_price_quote(symbol, "requests is not installed.")
@@ -897,6 +1061,9 @@ def dashboard_data():
     paper_trade_rows = paper_trades or paper_trade_watch_rows(watchlist_rows)
     stage_summary = watchlist_stage_summary(watchlist_rows)
     price_ticker = dashboard_price_ticker(watchlist_rows)
+    bot_status = bot_status_details(bot_heartbeat)
+    auto_status = auto_buy_status(bot_status, watchlist_rows)
+    auto_candidates = auto_buy_candidates(watchlist_rows, price_ticker)
 
     # Calculate profit/loss summary
     total_profit = 0.0
@@ -969,7 +1136,9 @@ def dashboard_data():
             "market_open_time": MARKET_OPEN_TIME,
         },
         "ig_status": get_dashboard_status("ig_status") or "",
-        "bot_status": bot_status_details(bot_heartbeat),
+        "bot_status": bot_status,
+        "auto_buy_status": auto_status,
+        "auto_buy_candidates": auto_candidates,
         "watchlist_stage_summary": stage_summary,
         "price_ticker": price_ticker,
         "live_markets": dashboard_live_markets(),

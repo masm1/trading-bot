@@ -70,6 +70,30 @@
     <div class="service-status" id="serviceStatus">{{ data.ig_status }}</div>
 
     <main>
+      <section class="command-grid">
+        <section class="section command-panel">
+          <div class="sectionHeader">
+            <div>
+              <p class="eyebrow">Automation</p>
+              <h2>Auto-Buy Status</h2>
+            </div>
+            <span class="badge" id="autoBuyReadiness">{{ data.auto_buy_status.readiness }}</span>
+          </div>
+          <div class="status-grid" id="autoBuyStatusGrid"></div>
+        </section>
+
+        <section class="section candidate-panel">
+          <div class="sectionHeader">
+            <div>
+              <p class="eyebrow">Decision Queue</p>
+              <h2>Candidate Ranking</h2>
+            </div>
+            <span class="count-pill" id="candidateCount">{{ data.auto_buy_candidates|length }}</span>
+          </div>
+          <div class="candidate-list" id="candidateList"></div>
+        </section>
+      </section>
+
       <section class="section live-markets-panel">
         <div class="sectionHeader">
           <div>
@@ -178,6 +202,7 @@
           <tbody id="positionsBody"></tbody>
         </table>
       </div>
+      <div class="mobile-card-list" id="positionCards"></div>
     </section>
 
     <section class="section">
@@ -204,6 +229,7 @@
           <tbody id="closedPositionsBody"></tbody>
         </table>
       </div>
+      <div class="mobile-card-list" id="closedPositionCards"></div>
     </section>
 
     <section class="grid">
@@ -265,6 +291,7 @@
             <tbody id="demoOrdersBody"></tbody>
           </table>
         </div>
+        <div class="mobile-card-list" id="demoOrderCards"></div>
       </div>
     </section>
 

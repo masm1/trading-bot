@@ -314,6 +314,210 @@ main {
   display: block;
 }
 
+.command-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+  gap: 14px;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+
+.status-item {
+  min-height: 74px;
+  padding: 14px;
+  background: var(--panel);
+}
+
+.status-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.status-item strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.tone-good,
+.badge.tone_good {
+  color: #91eba9;
+}
+
+.tone-warn,
+.badge.tone_warn {
+  color: #ffd481;
+}
+
+.tone-danger,
+.badge.tone_danger {
+  color: #ffa0a0;
+}
+
+.tone-info,
+.badge.tone_info {
+  color: #b7cbff;
+}
+
+.badge.tone_good {
+  border-color: rgba(80, 212, 125, 0.35);
+  background: rgba(80, 212, 125, 0.12);
+}
+
+.badge.tone_warn {
+  border-color: rgba(244, 184, 74, 0.38);
+  background: rgba(244, 184, 74, 0.12);
+}
+
+.badge.tone_danger {
+  border-color: rgba(255, 107, 107, 0.36);
+  background: rgba(255, 107, 107, 0.12);
+}
+
+.candidate-list {
+  max-height: 372px;
+  overflow: auto;
+  scrollbar-color: var(--line) transparent;
+}
+
+.candidate-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(48, 57, 68, 0.72);
+  background: var(--panel);
+}
+
+.candidate-row:last-child {
+  border-bottom: 0;
+}
+
+.candidate-row.eligible {
+  box-shadow: inset 3px 0 0 var(--good);
+}
+
+.candidate-row.skipped {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+
+.candidate-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: var(--panel-soft);
+}
+
+.candidate-main {
+  min-width: 0;
+}
+
+.candidate-title,
+.candidate-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.candidate-title {
+  justify-content: space-between;
+}
+
+.candidate-title strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.candidate-meta {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.candidate-main small {
+  display: block;
+  margin-top: 9px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.candidate-empty {
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.mobile-card-list {
+  display: none;
+}
+
+.mobile-data-card,
+.mobile-empty {
+  padding: 14px;
+  border-bottom: 1px solid rgba(48, 57, 68, 0.72);
+  background: var(--panel);
+}
+
+.mobile-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mobile-card-header strong {
+  min-width: 0;
+  color: var(--text);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.mobile-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.mobile-card-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.mobile-card-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.mobile-empty {
+  color: var(--muted);
+  text-align: center;
+}
+
 .timeline-panel {
   margin-bottom: 14px;
   overflow: hidden;
@@ -652,6 +856,7 @@ tr:last-child td {
   .overview,
   .ticker-tape,
   .analytics-grid,
+  .command-grid,
   .stage-flow,
   .live-markets-grid,
   .grid {
@@ -686,6 +891,7 @@ tr:last-child td {
   .overview,
   .ticker-tape,
   .analytics-grid,
+  .command-grid,
   .grid,
   .stage-flow,
   .live-markets-grid,
@@ -701,5 +907,33 @@ tr:last-child td {
 
   .chart-wrap {
     height: 280px;
+  }
+
+  .status-grid,
+  .mobile-card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .candidate-list {
+    max-height: none;
+  }
+
+  .candidate-row {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: 13px;
+  }
+
+  .candidate-title {
+    align-items: flex-start;
+  }
+
+  .section > .tableWrap:has(#positionsBody),
+  .section > .tableWrap:has(#closedPositionsBody),
+  .section .tableWrap:has(#demoOrdersBody) {
+    display: none;
+  }
+
+  .mobile-card-list {
+    display: block;
   }
 }
