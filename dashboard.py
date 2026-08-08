@@ -70,7 +70,6 @@ from logger import (
     CLOSED_POSITIONS_FILE,
     DEMO_ORDERS_FILE,
     OPEN_POSITIONS_FILE,
-    PAPER_TRADES_FILE,
     POSITIONS_LOG_FILE,
     TRADES_LOG_FILE,
     create_log_files_if_missing,
@@ -429,33 +428,6 @@ def read_latest_db_rows(table, fallback_path, limit=25):
 def read_recent_db_rows(table, fallback_path, limit=25, max_age=RECENT_ACTIVITY_MAX_AGE):
     rows = read_latest_db_rows(table, fallback_path, limit=max(limit * 5, 100))
     rows = [row for row in rows if row_is_recent(row, max_age)]
-    return rows[:limit]
-
-
-def read_recent_paper_trade_ideas(limit=15):
-    rows = read_recent_db_rows("paper_trades", PAPER_TRADES_FILE, limit=max(limit * 5, 100))
-    rows = [row for row in rows if (row.get("signal") or "").strip().upper() != "NO_SIGNAL"]
-    return rows[:limit]
-
-
-def paper_trade_watch_rows(watchlist_rows, limit=6):
-    rows = []
-    for item in watchlist_rows:
-        stage = item.get("stage", "")
-        if stage in ["EVENT_COMPLETE", "MARKET_OPEN_WINDOW_COMPLETE", "MARKET_CLOSED_WEEKEND"]:
-            continue
-
-        rows.append(
-            {
-                "timestamp": item.get("watch_time", ""),
-                "symbol": item.get("symbol", ""),
-                "signal": "WATCHING",
-                "paper_action": f"Waiting for {stage.replace('_', ' ').title()} before CALL/PUT idea",
-                "change_percent": "",
-                "notes": item.get("notes", ""),
-            }
-        )
-
     return rows[:limit]
 
 
@@ -1049,12 +1021,10 @@ def dashboard_data():
     closed_positions = read_latest_db_rows("closed_positions", CLOSED_POSITIONS_FILE, limit=15)
     if not closed_positions:
         closed_positions = closed_position_snapshots_from_orders()
-    paper_trades = read_recent_paper_trade_ideas(limit=15)
     demo_orders = read_latest_db_rows("demo_orders", DEMO_ORDERS_FILE, limit=15)
     trade_log = latest_trade_log_rows(limit=20)
     bot_heartbeat = latest_bot_heartbeat()
     watchlist_rows = dashboard_watchlist()
-    paper_trade_rows = paper_trades or paper_trade_watch_rows(watchlist_rows)
     stage_summary = watchlist_stage_summary(watchlist_rows)
     price_ticker = dashboard_price_ticker(watchlist_rows)
     bot_status = bot_status_details(bot_heartbeat)
@@ -1119,7 +1089,6 @@ def dashboard_data():
         "chart_data": chart_data,
         "last_update": last_update_value(),
         "trade_log_count": live_log_count(TRADES_LOG_FILE),
-        "paper_trade_count": len(paper_trades),
         "demo_order_count": live_log_count(DEMO_ORDERS_FILE),
         "watchlist_count": len(watchlist_rows),
         "watchlist_mode": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings",
@@ -1139,7 +1108,6 @@ def dashboard_data():
         "price_ticker": price_ticker,
         "live_markets": dashboard_live_markets(),
         "watchlist": watchlist_rows,
-        "paper_trades": paper_trade_rows,
         "demo_orders": demo_orders,
         "trade_log": trade_log,
     }

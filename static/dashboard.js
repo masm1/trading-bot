@@ -2,7 +2,6 @@ const bodies = {
   watchlist: document.getElementById("watchlistBody"),
   positions: document.getElementById("positionsBody"),
   closedPositions: document.getElementById("closedPositionsBody"),
-  paperTrades: document.getElementById("paperTradesBody"),
   demoOrders: document.getElementById("demoOrdersBody"),
   tradeLog: document.getElementById("tradeLogBody"),
 };
@@ -13,7 +12,6 @@ const plSummary = document.getElementById("plSummary");
 const refreshButton = document.getElementById("refreshButton");
 const lastUpdateEl = document.getElementById("lastUpdate");
 const tradeLogCountEl = document.getElementById("tradeLogCount");
-const paperTradeCountEl = document.getElementById("paperTradeCount");
 const demoOrderCountEl = document.getElementById("demoOrderCount");
 const watchlistCountEl = document.getElementById("watchlistCount");
 const watchlistPill = document.getElementById("watchlistPill");
@@ -638,7 +636,6 @@ function render(data) {
   if (openPositionPill) openPositionPill.textContent = openCount;
   if (lastUpdateEl) lastUpdateEl.textContent = data.last_update || "-";
   if (tradeLogCountEl) tradeLogCountEl.textContent = `${data.trade_log_count ?? 0} log rows`;
-  if (paperTradeCountEl) paperTradeCountEl.textContent = data.paper_trade_count ?? 0;
   if (demoOrderCountEl) demoOrderCountEl.textContent = data.demo_order_count ?? 0;
   if (watchlistCountEl) watchlistCountEl.textContent = data.watchlist_count ?? 0;
   if (watchlistPill) watchlistPill.textContent = data.watchlist_count ?? 0;
@@ -736,19 +733,6 @@ function render(data) {
       { label: "Currency", value: (item) => item.currency },
     ],
   });
-
-  setRows(
-    bodies.paperTrades,
-    data.paper_trades,
-    [
-      { key: "timestamp" },
-      { key: "symbol" },
-      { key: "signal", render: badge },
-      { key: "paper_action" },
-      { key: "change_percent", format: signedPercent, className: moneyClass },
-    ],
-    "No active watchlist windows available for CALL/PUT ideas yet."
-  );
 
   setRows(
     bodies.demoOrders,
