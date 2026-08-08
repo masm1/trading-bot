@@ -204,6 +204,10 @@ body {
   color: var(--warn);
 }
 
+.ticker-item.no-quote {
+  opacity: 0.78;
+}
+
 @keyframes ticker-scroll {
   from {
     transform: translateX(0);
@@ -422,6 +426,15 @@ main {
 
 .live-market-card.flat .live-market-change {
   color: var(--warn);
+}
+
+.live-market-card.no-quote {
+  border-top-color: var(--line);
+}
+
+.live-market-card.no-quote .live-market-price {
+  color: var(--muted);
+  font-size: 18px;
 }
 
 .live-market-price {

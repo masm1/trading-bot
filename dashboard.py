@@ -115,15 +115,13 @@ LIVE_MARKETS_CACHE = {
     "updated_at": 0,
     "rows": [],
 }
+YAHOO_SYMBOL_MAP = {
+    "BTC": "BTC-USD",
+    "ETH": "ETH-USD",
+}
 
 # Trading configuration
-EPIC_MAP = {
-    "AAPL": "UA.D.AAPL.CFD.IP",
-    "AMZN": "UA.D.AMZN.CFD.IP",
-    "TSLA": "UA.D.TSLA.CFD.IP",
-    "MSFT": "UA.D.MSFT.CFD.IP",
-    "GOOGL": "UA.D.GOOG.CFD.IP"
-}
+# Use the shared IG epic mapping from mapping.py.
 
 # Global IG service instance
 ig_service = None
@@ -639,6 +637,8 @@ def dashboard_price_ticker(watchlist_rows):
                 "change": quote.get("change", ""),
                 "change_percent": quote.get("change_percent", ""),
                 "direction": quote.get("direction", "flat"),
+                "quote_source": quote.get("source", ""),
+                "quote_message": quote.get("message", ""),
                 "status": item.get("stage", ""),
             }
         )
@@ -680,6 +680,8 @@ def dashboard_live_markets():
                 "change": quote.get("change", ""),
                 "change_percent": quote.get("change_percent", ""),
                 "direction": quote.get("direction", "flat"),
+                "quote_source": quote.get("source", ""),
+                "quote_message": quote.get("message", ""),
             }
         )
 
@@ -689,9 +691,26 @@ def dashboard_live_markets():
 
 
 def fetch_price_quote(symbol):
-    if requests is None or looks_like_placeholder(FINNHUB_API_KEY):
-        return latest_logged_price_quote(symbol)
+    if requests is None:
+        return latest_logged_price_quote(symbol, "requests is not installed.")
 
+    symbol = (symbol or "").strip().upper()
+    if not symbol:
+        return no_quote("Missing symbol.")
+
+    if not looks_like_placeholder(FINNHUB_API_KEY):
+        quote = fetch_finnhub_quote(symbol)
+        if quote.get("price") != "":
+            return quote
+
+    quote = fetch_yahoo_quote(symbol)
+    if quote.get("price") != "":
+        return quote
+
+    return latest_logged_price_quote(symbol, quote.get("message", "No live quote available."))
+
+
+def fetch_finnhub_quote(symbol):
     try:
         response = requests.get(
             "https://finnhub.io/api/v1/quote",
@@ -702,27 +721,76 @@ def fetch_price_quote(symbol):
             timeout=8,
         )
         if response.status_code != 200:
-            return latest_logged_price_quote(symbol)
+            return no_quote(f"Finnhub returned HTTP {response.status_code}.")
 
         data = response.json()
         current = to_float(data.get("c"))
         previous = to_float(data.get("pc"))
         if current is None or previous in (None, 0):
-            return latest_logged_price_quote(symbol)
+            return no_quote("Finnhub returned an empty quote.")
 
-        change = current - previous
-        change_percent = (change / previous) * 100
-        return {
-            "price": round(current, 2),
-            "change": round(change, 2),
-            "change_percent": round(change_percent, 2),
-            "direction": price_direction(change),
-        }
-    except Exception:
-        return latest_logged_price_quote(symbol)
+        return build_quote(current, previous, "Finnhub")
+    except Exception as exc:
+        return no_quote(f"Finnhub unavailable: {exc}")
 
 
-def latest_logged_price_quote(symbol):
+def fetch_yahoo_quote(symbol):
+    yahoo_symbol = YAHOO_SYMBOL_MAP.get(symbol.upper(), symbol.upper())
+    try:
+        response = requests.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_symbol}",
+            params={"range": "2d", "interval": "1d"},
+            timeout=8,
+            headers={"User-Agent": "TradingBotDashboard/1.0"},
+        )
+        if response.status_code != 200:
+            return no_quote(f"Yahoo returned HTTP {response.status_code}.")
+
+        data = response.json()
+        result = (data.get("chart", {}).get("result") or [None])[0]
+        if not result:
+            return no_quote("Yahoo returned an empty quote.")
+
+        meta = result.get("meta", {})
+        current = to_float(meta.get("regularMarketPrice"))
+        previous = to_float(meta.get("chartPreviousClose") or meta.get("previousClose"))
+        if current is None:
+            closes = [
+                to_float(value)
+                for value in (
+                    (result.get("indicators", {}).get("quote") or [{}])[0].get("close") or []
+                )
+            ]
+            closes = [value for value in closes if value is not None]
+            if closes:
+                current = closes[-1]
+                if previous is None and len(closes) > 1:
+                    previous = closes[-2]
+
+        if current is None:
+            return no_quote("Yahoo returned no current price.")
+        if previous in (None, 0):
+            previous = current
+
+        return build_quote(current, previous, "Yahoo")
+    except Exception as exc:
+        return no_quote(f"Yahoo unavailable: {exc}")
+
+
+def build_quote(current, previous, source):
+    change = current - previous
+    change_percent = (change / previous) * 100 if previous else 0
+    return {
+        "price": round(current, 2),
+        "change": round(change, 2),
+        "change_percent": round(change_percent, 2),
+        "direction": price_direction(change),
+        "source": source,
+        "message": "",
+    }
+
+
+def latest_logged_price_quote(symbol, message=""):
     rows = read_latest_db_rows("trade_log", TRADES_LOG_FILE, limit=200)
     for row in rows:
         if (row.get("symbol") or "").upper() != symbol.upper():
@@ -738,13 +806,21 @@ def latest_logged_price_quote(symbol):
             "change": "",
             "change_percent": round(change_percent, 2) if change_percent is not None else "",
             "direction": price_direction(change_percent),
+            "source": "Log",
+            "message": message or "Using latest logged price.",
         }
 
+    return no_quote(message or "No quote has been logged yet.")
+
+
+def no_quote(message):
     return {
         "price": "",
         "change": "",
         "change_percent": "",
         "direction": "flat",
+        "source": "",
+        "message": message,
     }
 
 

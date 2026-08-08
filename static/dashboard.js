@@ -52,6 +52,10 @@ function number(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function hasNumber(value) {
+  return value !== "" && value !== null && value !== undefined && Number.isFinite(Number(value));
+}
+
 function money(value) {
   return `$${number(value).toFixed(2)}`;
 }
@@ -329,23 +333,19 @@ function renderStageFlow(summary) {
 }
 
 function formatPriceText(value) {
-  if (value === "" || value === null || value === undefined) {
-    return "No live quote";
+  if (!hasNumber(value)) {
+    return "Waiting for quote";
   }
 
   return `$${Number(value).toFixed(2)}`;
 }
 
 function formatMoveText(value) {
-  if (value === "" || value === null || value === undefined) {
+  if (!hasNumber(value)) {
     return "No change data";
   }
 
   const numberValue = Number(value);
-  if (Number.isNaN(numberValue)) {
-    return "No change data";
-  }
-
   return `${numberValue > 0 ? "+" : ""}${numberValue.toFixed(2)} today`;
 }
 
@@ -364,6 +364,7 @@ function renderPriceTicker(rows) {
   [...tickerRows, ...tickerRows].forEach((item) => {
     const node = document.createElement("div");
     node.className = `ticker-item ${item.direction || "flat"}`;
+    if (!hasNumber(item.price)) node.classList.add("no-quote");
 
     const symbol = document.createElement("strong");
     const price = document.createElement("span");
@@ -376,7 +377,9 @@ function renderPriceTicker(rows) {
       ? "-"
       : signedPercent(item.change_percent);
     change.className = "ticker-change";
-    status.textContent = readableEvent(item.status || "");
+    status.textContent = item.quote_source
+      ? `${readableEvent(item.status || "")} | ${item.quote_source}`
+      : readableEvent(item.status || item.quote_message || "");
 
     node.append(symbol, price, change, status);
     priceTickerEl.appendChild(node);
@@ -401,6 +404,7 @@ function renderLiveMarkets(rows) {
   marketRows.forEach((item) => {
     const card = document.createElement("article");
     card.className = `live-market-card ${item.direction || "flat"}`;
+    if (!hasNumber(item.price)) card.classList.add("no-quote");
 
     const header = document.createElement("div");
     header.className = "live-market-header";
@@ -425,9 +429,9 @@ function renderLiveMarkets(rows) {
     price.textContent = formatPriceText(item.price);
 
     const move = document.createElement("small");
-    move.textContent = item.change === "" || item.change === null || item.change === undefined
-      ? "No change data"
-      : formatMoveText(item.change);
+    move.textContent = item.quote_source
+      ? `${formatMoveText(item.change)} | ${item.quote_source}`
+      : item.quote_message || "No change data";
 
     card.append(header, price, move);
     liveMarketsGridEl.appendChild(card);
@@ -688,17 +692,32 @@ if (watchlistScroll) {
 
 async function refresh() {
   try {
-    refreshButton.disabled = true;
+    if (refreshButton) refreshButton.disabled = true;
     const response = await fetch("/api/dashboard", { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Dashboard API returned ${response.status}`);
+    }
     const data = await response.json();
     render(data);
+  } catch (error) {
+    if (serviceStatusEl) {
+      serviceStatusEl.textContent = `Dashboard refresh failed: ${error.message || error}`;
+      serviceStatusEl.style.display = "block";
+    }
   } finally {
-    refreshButton.disabled = false;
+    if (refreshButton) refreshButton.disabled = false;
   }
 }
 
-refreshButton.addEventListener("click", refresh);
-render(window.initialData);
+if (refreshButton) refreshButton.addEventListener("click", refresh);
+try {
+  render(window.initialData || {});
+} catch (error) {
+  if (serviceStatusEl) {
+    serviceStatusEl.textContent = `Dashboard render failed: ${error.message || error}`;
+    serviceStatusEl.style.display = "block";
+  }
+}
 startWatchlistAutoScroll();
 refresh();
 setInterval(refresh, 10000);
