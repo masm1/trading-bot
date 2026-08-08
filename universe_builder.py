@@ -20,6 +20,7 @@ from config import (
     DISCOVERY_EXTRA_SYMBOLS,
     DISCOVERY_SEED_SYMBOLS,
     FINNHUB_API_KEY,
+    LIVE_TREND_SYMBOLS,
     MAX_AUTO_WATCHLIST_SYMBOLS,
     MAX_IPO_SYMBOLS,
     MIN_DISCOVERY_PRICE,
@@ -72,6 +73,19 @@ def refresh_auto_watchlist():
                     category="market",
                     score=95,
                     reason="Configured discovery seed.",
+                    now=now,
+                )
+            )
+
+        for symbol, label in _configured_symbols(LIVE_TREND_SYMBOLS):
+            candidates.append(
+                _candidate(
+                    symbol=symbol,
+                    name=label,
+                    source="trend_seed",
+                    category="live_trend",
+                    score=92,
+                    reason="Configured live trend auto-buy seed.",
                     now=now,
                 )
             )
@@ -198,7 +212,7 @@ def _select_active_candidates(candidates):
     accepted = []
     rejected = []
     for row in sorted(deduped.values(), key=lambda item: _to_float(item.get("score")) or 0, reverse=True):
-        if row.get("source") in {"seed", "manual_seed"}:
+        if row.get("source") in {"seed", "trend_seed", "manual_seed"}:
             row["active"] = "yes"
             row["reason"] = f"{row['reason']} Kept active by configuration."
             accepted.append(row)

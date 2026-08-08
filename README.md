@@ -228,10 +228,11 @@ AUTO_DISCOVERY_ENABLED=true
 AUTO_DISCOVERY_OUTPUT_FILE=auto_watchlist.csv
 AUTO_DISCOVERY_REFRESH_HOURS=12
 AUTO_ADD_IPOS=true
-MAX_AUTO_WATCHLIST_SYMBOLS=20
+MAX_AUTO_WATCHLIST_SYMBOLS=30
 MAX_IPO_SYMBOLS=5
 MIN_DISCOVERY_PRICE=5
 DISCOVERY_SEED_SYMBOLS=SPY:S&P 500,QQQ:Nasdaq 100,DIA:Dow 30,IWM:Russell 2000,GLD:Gold,USO:Oil
+LIVE_TREND_SYMBOLS=UAL:United Airlines Holdings,NFLX:Netflix,AA:Alcoa,STLD:Steel Dynamics,IBKR:Interactive Brokers,APLD:Applied Digital,TSLA:Tesla,IBM:IBM,INTC:Intel,AXP:American Express,UHS:Universal Health Services,LUMN:Lumen Technologies,SBUX:Starbucks,QCOM:Qualcomm,RIVN:Rivian
 DISCOVERY_EXTRA_SYMBOLS=
 ```
 
@@ -240,6 +241,8 @@ Use `DISCOVERY_EXTRA_SYMBOLS` for names you want considered in addition to the c
 ```text
 DISCOVERY_EXTRA_SYMBOLS=TSLA:Tesla,META:Meta
 ```
+
+Use `LIVE_TREND_SYMBOLS` for stocks that should stay in the market-open/trend auto-buy list even when their earnings event window is complete.
 
 ## Optional Trend Buy Mode
 

@@ -92,6 +92,15 @@ LIVE_MARKET_SYMBOLS = get_env(
     "LIVE_MARKET_SYMBOLS",
     "SPY:S&P 500,QQQ:Nasdaq 100,DIA:Dow 30,IWM:Russell 2000,GLD:Gold,USO:Oil",
 )
+LIVE_TREND_SYMBOLS = get_env(
+    "LIVE_TREND_SYMBOLS",
+    (
+        "UAL:United Airlines Holdings,NFLX:Netflix,AA:Alcoa,STLD:Steel Dynamics,"
+        "IBKR:Interactive Brokers,APLD:Applied Digital,TSLA:Tesla,IBM:IBM,"
+        "INTC:Intel,AXP:American Express,UHS:Universal Health Services,"
+        "LUMN:Lumen Technologies,SBUX:Starbucks,QCOM:Qualcomm,RIVN:Rivian"
+    ),
+)
 AUTO_DISCOVERY_ENABLED = get_bool_env("AUTO_DISCOVERY_ENABLED", True)
 AUTO_DISCOVERY_OUTPUT_FILE = get_env("AUTO_DISCOVERY_OUTPUT_FILE", "auto_watchlist.csv")
 AUTO_DISCOVERY_REFRESH_HOURS = int(get_env("AUTO_DISCOVERY_REFRESH_HOURS", "12"))
@@ -99,7 +108,7 @@ AUTO_DISCOVERY_LOOKBACK_DAYS = int(get_env("AUTO_DISCOVERY_LOOKBACK_DAYS", "7"))
 AUTO_DISCOVERY_LOOKAHEAD_DAYS = int(get_env("AUTO_DISCOVERY_LOOKAHEAD_DAYS", "45"))
 AUTO_ADD_IPOS = get_bool_env("AUTO_ADD_IPOS", True)
 AUTO_ADD_SEED_SYMBOLS = get_bool_env("AUTO_ADD_SEED_SYMBOLS", True)
-MAX_AUTO_WATCHLIST_SYMBOLS = int(get_env("MAX_AUTO_WATCHLIST_SYMBOLS", "20"))
+MAX_AUTO_WATCHLIST_SYMBOLS = int(get_env("MAX_AUTO_WATCHLIST_SYMBOLS", "30"))
 MAX_IPO_SYMBOLS = int(get_env("MAX_IPO_SYMBOLS", "5"))
 MIN_DISCOVERY_PRICE = float(get_env("MIN_DISCOVERY_PRICE", "5"))
 DISCOVERY_SEED_SYMBOLS = get_env(
