@@ -177,6 +177,23 @@
         </div>
       </section>
 
+      <section class="section manual-orders-panel">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Manual Execution</p>
+            <h2>Watchlist Buy Orders</h2>
+          </div>
+          <div class="manual-order-controls">
+            <label>
+              <span>Notional $</span>
+              <input id="manualWatchlistNotional" type="number" step="1" min="1" value="500">
+            </label>
+            <span class="count-pill" id="manualWatchlistCount">{{ data.auto_buy_candidates|length }}</span>
+          </div>
+        </div>
+        <div class="manual-order-grid" id="manualWatchlistOrders"></div>
+      </section>
+
       <section class="section">
         <div class="sectionHeader">
           <div>

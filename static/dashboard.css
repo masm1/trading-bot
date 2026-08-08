@@ -465,6 +465,89 @@ main {
   text-align: center;
 }
 
+.manual-order-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.manual-order-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.manual-order-controls input {
+  width: 102px;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 0 10px;
+  font-weight: 800;
+}
+
+.manual-order-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+
+.manual-order-card,
+.manual-order-empty {
+  min-height: 168px;
+  padding: 15px;
+  background: var(--panel);
+}
+
+.manual-order-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manual-order-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.manual-order-header strong {
+  color: var(--text);
+  font-size: 18px;
+}
+
+.manual-order-meta {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.manual-order-card small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.manual-buy-button {
+  margin-top: auto;
+}
+
+.manual-order-empty {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  text-align: center;
+}
+
 .mobile-card-list {
   display: none;
 }
@@ -859,6 +942,7 @@ tr:last-child td {
   .command-grid,
   .stage-flow,
   .live-markets-grid,
+  .manual-order-grid,
   .grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -895,6 +979,7 @@ tr:last-child td {
   .grid,
   .stage-flow,
   .live-markets-grid,
+  .manual-order-grid,
   .pl-summary {
     grid-template-columns: 1fr;
   }
@@ -925,6 +1010,15 @@ tr:last-child td {
 
   .candidate-title {
     align-items: flex-start;
+  }
+
+  .manual-order-controls {
+    justify-content: flex-start;
+  }
+
+  .manual-order-controls label,
+  .manual-order-controls input {
+    width: 100%;
   }
 
   .section > .tableWrap:has(#positionsBody),

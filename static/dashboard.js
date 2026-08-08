@@ -35,6 +35,9 @@ const autoBuyReadinessEl = document.getElementById("autoBuyReadiness");
 const autoBuyStatusGridEl = document.getElementById("autoBuyStatusGrid");
 const candidateListEl = document.getElementById("candidateList");
 const candidateCountEl = document.getElementById("candidateCount");
+const manualWatchlistOrdersEl = document.getElementById("manualWatchlistOrders");
+const manualWatchlistCountEl = document.getElementById("manualWatchlistCount");
+const manualWatchlistNotionalEl = document.getElementById("manualWatchlistNotional");
 const positionCardsEl = document.getElementById("positionCards");
 const closedPositionCardsEl = document.getElementById("closedPositionCards");
 const demoOrderCardsEl = document.getElementById("demoOrderCards");
@@ -234,7 +237,7 @@ function renderPaperTradeAction(value, item) {
 
 async function manualBuy(symbol) {
   try {
-    const notionalInput = document.getElementById("manualBuyNotional");
+    const notionalInput = document.getElementById("manualBuyNotional") || manualWatchlistNotionalEl;
     const notional = notionalInput ? Number(notionalInput.value) : undefined;
     const payload = { symbol, confirm: true };
     if (notional) payload.notional_usd = notional;
@@ -254,6 +257,23 @@ async function manualBuy(symbol) {
   } catch (error) {
     alert(`Buy request failed: ${error}`);
     return false;
+  }
+}
+
+async function manualBuyWithNotional(symbol, notional) {
+  const paperInput = document.getElementById("manualBuyNotional");
+  const watchInput = manualWatchlistNotionalEl;
+  const previousPaper = paperInput ? paperInput.value : null;
+  const previousWatch = watchInput ? watchInput.value : null;
+
+  if (paperInput) paperInput.value = notional;
+  if (watchInput) watchInput.value = notional;
+
+  try {
+    return await manualBuy(symbol);
+  } finally {
+    if (paperInput && previousPaper !== null) paperInput.value = previousPaper;
+    if (watchInput && previousWatch !== null) watchInput.value = previousWatch;
   }
 }
 
@@ -536,6 +556,70 @@ function renderCandidates(rows) {
   });
 }
 
+function renderManualWatchlistOrders(rows, status) {
+  if (!manualWatchlistOrdersEl) return;
+  manualWatchlistOrdersEl.replaceChildren();
+  const candidates = rows || [];
+  const details = status || {};
+  if (manualWatchlistCountEl) manualWatchlistCountEl.textContent = candidates.length;
+
+  if (candidates.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "manual-order-empty";
+    empty.textContent = "No watchlist symbols available.";
+    manualWatchlistOrdersEl.appendChild(empty);
+    return;
+  }
+
+  candidates.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "manual-order-card";
+
+    const header = document.createElement("div");
+    header.className = "manual-order-header";
+    const symbol = document.createElement("strong");
+    symbol.textContent = item.symbol || "-";
+    const state = toneBadge(details.manual_buy_enabled ? "Manual Ready" : "Manual Disabled", details.manual_buy_enabled ? "good" : "warn");
+    header.append(symbol, state);
+
+    const meta = document.createElement("div");
+    meta.className = "manual-order-meta";
+    meta.append(
+      document.createTextNode(`Price ${formatPriceText(item.price)}`),
+      document.createTextNode(`Stage ${readableEvent(item.stage || "-")}`),
+      document.createTextNode(`Route ${text(item.tradable_hint)}`)
+    );
+
+    const reason = document.createElement("small");
+    reason.textContent = details.manual_buy_enabled
+      ? "Manual buy uses the server allowlist and rate limit."
+      : "Enable PAPER_TRADING, ALLOW_MANUAL_BUY, and your IP allowlist on the server.";
+
+    const action = document.createElement("button");
+    action.type = "button";
+    action.className = "refresh-button manual-buy-button";
+    action.textContent = `Buy ${item.symbol || ""}`.trim();
+    action.disabled = !details.manual_buy_enabled;
+    action.addEventListener("click", async () => {
+      const notional = manualWatchlistNotionalEl ? Number(manualWatchlistNotionalEl.value) : 500;
+      const confirmed = window.confirm(`Confirm BUY ${item.symbol} for approx $${notional || 500}?`);
+      if (!confirmed) return;
+
+      action.disabled = true;
+      action.textContent = "Sending...";
+      try {
+        await manualBuyWithNotional(item.symbol, notional || 500);
+      } finally {
+        action.disabled = !details.manual_buy_enabled;
+        action.textContent = `Buy ${item.symbol || ""}`.trim();
+      }
+    });
+
+    card.append(header, meta, reason, action);
+    manualWatchlistOrdersEl.appendChild(card);
+  });
+}
+
 function mobileField(label, value, className) {
   const field = document.createElement("div");
   const labelEl = document.createElement("span");
@@ -687,6 +771,7 @@ function render(data) {
   renderLiveMarkets(data.live_markets);
   renderAutoBuyStatus(data.auto_buy_status);
   renderCandidates(data.auto_buy_candidates);
+  renderManualWatchlistOrders(data.auto_buy_candidates, data.auto_buy_status);
   renderChart(data);
 
   setRows(
