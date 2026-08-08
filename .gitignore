@@ -14,3 +14,4 @@ pip-delete-this-directory.txt
 .mypy_cache/
 .vscode/
 .DS_Store
+market_discovery_state.json

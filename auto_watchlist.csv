@@ -1,0 +1,7 @@
+symbol,active,notes,name,source,category,score,reason,last_updated,ipo_date,ipo_status,exchange,price
+SPY,yes,Core liquidity anchor.,S&P 500,seed,market,95,Core liquidity anchor.,,,,
+QQQ,yes,Core liquidity anchor.,Nasdaq 100,seed,market,95,Core liquidity anchor.,,,,
+DIA,yes,Core liquidity anchor.,Dow 30,seed,market,95,Core liquidity anchor.,,,,
+IWM,yes,Core liquidity anchor.,Russell 2000,seed,market,95,Core liquidity anchor.,,,,
+GLD,yes,Core liquidity anchor.,Gold,seed,market,95,Core liquidity anchor.,,,,
+USO,yes,Core liquidity anchor.,Oil,seed,market,95,Core liquidity anchor.,,,,

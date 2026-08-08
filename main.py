@@ -14,6 +14,7 @@ from market_open import (
     load_market_open_watchlist,
 )
 from tracker import PriceTracker
+from universe_builder import refresh_auto_watchlist_if_due
 from watchlist import get_event_stage, load_watchlist
 
 # UTF-8 fix (Windows)
@@ -64,6 +65,15 @@ def run_earnings_cycle(tracker, now):
 
 
 def run_market_open_cycle(tracker, now, stage=None):
+    discovery = refresh_auto_watchlist_if_due()
+    if discovery.get("enabled"):
+        print(
+            "Market discovery | "
+            f"active={discovery.get('active_count', 0)} | "
+            f"skipped={discovery.get('skipped_count', 0)} | "
+            f"last_refresh={discovery.get('last_refresh', '') or 'pending'}"
+        )
+
     watch_items = load_market_open_watchlist()
 
     if not watch_items:

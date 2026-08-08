@@ -37,6 +37,10 @@ const commandModeEl = document.getElementById("commandMode");
 const commandMarketEl = document.getElementById("commandMarket");
 const commandNextEl = document.getElementById("commandNext");
 const commandLastCycleEl = document.getElementById("commandLastCycle");
+const discoveryStatusEl = document.getElementById("discoveryStatus");
+const discoveryCountEl = document.getElementById("discoveryCount");
+const discoverySummaryEl = document.getElementById("discoverySummary");
+const discoveryListEl = document.getElementById("discoveryList");
 const autoBuyReadinessEl = document.getElementById("autoBuyReadiness");
 const autoBuyStatusGridEl = document.getElementById("autoBuyStatusGrid");
 const candidateListEl = document.getElementById("candidateList");
@@ -505,6 +509,75 @@ function renderCommandCenter(data) {
   }
 }
 
+function renderDiscovery(discovery) {
+  if (!discoverySummaryEl || !discoveryListEl) return;
+  const details = discovery || {};
+  const rows = details.rows || [];
+  const enabled = Boolean(details.enabled);
+
+  if (discoveryStatusEl) {
+    discoveryStatusEl.textContent = enabled ? "Enabled" : "Disabled";
+    discoveryStatusEl.className = `badge tone_${enabled ? "good" : "warn"}`;
+  }
+  if (discoveryCountEl) discoveryCountEl.textContent = details.active_count ?? 0;
+
+  const summaryItems = [
+    ["Active", details.active_count ?? 0, "good"],
+    ["Skipped", details.skipped_count ?? 0, "warn"],
+    ["Max", details.max_symbols ?? "-"],
+    ["IPO Cap", details.max_ipo_symbols ?? "-"],
+    ["Min Price", money(details.min_price)],
+    ["Next Refresh", details.next_refresh || "-"],
+  ];
+
+  discoverySummaryEl.replaceChildren();
+  summaryItems.forEach(([label, value, tone]) => {
+    const item = document.createElement("div");
+    const labelEl = document.createElement("span");
+    const valueEl = document.createElement("strong");
+    labelEl.textContent = label;
+    valueEl.textContent = text(value);
+    if (tone) valueEl.className = `tone-${tone}`;
+    item.append(labelEl, valueEl);
+    discoverySummaryEl.appendChild(item);
+  });
+
+  discoveryListEl.replaceChildren();
+  if (rows.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "discovery-empty";
+    empty.textContent = details.message || "No discovery rows yet.";
+    discoveryListEl.appendChild(empty);
+    return;
+  }
+
+  rows.slice(0, 20).forEach((item) => {
+    const active = ["yes", "true", "1", "active"].includes(text(item.active).toLowerCase());
+    const row = document.createElement("article");
+    row.className = `discovery-row ${active ? "active" : "skipped"}`;
+
+    const symbol = document.createElement("strong");
+    symbol.textContent = item.symbol || "-";
+
+    const meta = document.createElement("div");
+    meta.className = "discovery-meta";
+    meta.append(
+      toneBadge(active ? "Active" : "Skipped", active ? "good" : "warn"),
+      badge(item.source || "-"),
+      badge(item.category || "-"),
+      document.createTextNode(`Score ${text(item.score)}`),
+      document.createTextNode(`Price ${hasNumber(item.price) ? formatPriceText(item.price) : "-"}`)
+    );
+
+    const reason = document.createElement("small");
+    const ipoBits = [item.ipo_status, item.ipo_date, item.exchange].filter(Boolean).join(" | ");
+    reason.textContent = `${item.reason || item.notes || "-"}${ipoBits ? ` (${ipoBits})` : ""}`;
+
+    row.append(symbol, meta, reason);
+    discoveryListEl.appendChild(row);
+  });
+}
+
 function renderCandidates(rows) {
   if (!candidateListEl) return;
   candidateListEl.replaceChildren();
@@ -757,6 +830,7 @@ function render(data) {
   updateMetricCard(netPlEl, data.net_pl);
 
   renderCommandCenter(data);
+  renderDiscovery(data.market_discovery);
   renderSummary(data);
   renderStageFlow(data.watchlist_stage_summary);
   renderPriceTicker(data.price_ticker);

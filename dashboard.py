@@ -65,6 +65,7 @@ from config import (
 )
 from mapping import EPIC_MAP, PRICE_SYMBOL_MAP, IG_SEARCH_MAP
 from strategy import demo_direction_for_signal, detect_signal
+from universe_builder import refresh_auto_watchlist_if_due
 
 from logger import (
     CLOSED_POSITIONS_FILE,
@@ -1074,6 +1075,7 @@ def last_update_value():
 
 def dashboard_data():
     create_log_files_if_missing()
+    discovery = refresh_auto_watchlist_if_due()
     open_positions = read_current_open_positions()
     closed_positions = read_latest_db_rows("closed_positions", CLOSED_POSITIONS_FILE, limit=15)
     if not closed_positions:
@@ -1164,6 +1166,7 @@ def dashboard_data():
         "watchlist_stage_summary": stage_summary,
         "price_ticker": price_ticker,
         "live_markets": dashboard_live_markets(),
+        "market_discovery": discovery,
         "watchlist": watchlist_rows,
         "demo_orders": demo_orders,
         "trade_log": trade_log,

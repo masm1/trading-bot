@@ -187,6 +187,7 @@ To let the bot watch a small share list at the regular US market open and place 
 
 ```text
 MARKET_OPEN_AUTO_MODE=true
+MARKET_OPEN_WATCHLIST_FILE=auto_watchlist.csv
 AUTO_SIGNAL_DEMO_TRADING=true
 MAX_SIGNAL_DEMO_TRADES_PER_ROUND=3
 SIGNAL_DEMO_NOTIONAL_USD=500
@@ -217,6 +218,28 @@ USO,yes,Market open auto candidate
 ```
 
 The bot saves base prices during the first few minutes after open, checks signals from 15 to 90 minutes after open, ranks eligible signals, and sends no more than `MAX_SIGNAL_DEMO_TRADES_PER_ROUND` demo orders.
+
+## Optional Auto Watchlist Discovery
+
+The dashboard can keep `auto_watchlist.csv` updated from configured core symbols plus Finnhub's IPO calendar. Core symbols stay active even if quote refresh is temporarily unavailable. IPOs are shown in Market Discovery, but they are only activated when they have a usable quote and pass the configured price/limit checks.
+
+```text
+AUTO_DISCOVERY_ENABLED=true
+AUTO_DISCOVERY_OUTPUT_FILE=auto_watchlist.csv
+AUTO_DISCOVERY_REFRESH_HOURS=12
+AUTO_ADD_IPOS=true
+MAX_AUTO_WATCHLIST_SYMBOLS=20
+MAX_IPO_SYMBOLS=5
+MIN_DISCOVERY_PRICE=5
+DISCOVERY_SEED_SYMBOLS=SPY:S&P 500,QQQ:Nasdaq 100,DIA:Dow 30,IWM:Russell 2000,GLD:Gold,USO:Oil
+DISCOVERY_EXTRA_SYMBOLS=
+```
+
+Use `DISCOVERY_EXTRA_SYMBOLS` for names you want considered in addition to the core market list:
+
+```text
+DISCOVERY_EXTRA_SYMBOLS=TSLA:Tesla,META:Meta
+```
 
 ## Optional Trend Buy Mode
 

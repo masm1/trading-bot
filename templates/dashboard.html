@@ -126,6 +126,21 @@
         </section>
       </section>
 
+      <section class="section discovery-panel">
+        <div class="sectionHeader">
+          <div>
+            <p class="eyebrow">Market Discovery</p>
+            <h2>Auto Watchlist Builder</h2>
+          </div>
+          <div class="section-actions">
+            <span class="badge" id="discoveryStatus">{{ "Enabled" if data.market_discovery.enabled else "Disabled" }}</span>
+            <span class="count-pill" id="discoveryCount">{{ data.market_discovery.active_count }}</span>
+          </div>
+        </div>
+        <div class="discovery-summary" id="discoverySummary"></div>
+        <div class="discovery-list" id="discoveryList"></div>
+      </section>
+
       <section class="section live-markets-panel">
         <div class="sectionHeader">
           <div>
