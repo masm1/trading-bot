@@ -64,14 +64,12 @@ from config import (
     MANUAL_BUY_RATE_LIMIT_MAX,
 )
 from mapping import EPIC_MAP, PRICE_SYMBOL_MAP, IG_SEARCH_MAP
-from db import replace_rows
 from strategy import demo_direction_for_signal, detect_signal
 
 from logger import (
     CLOSED_POSITIONS_FILE,
     DEMO_ORDERS_FILE,
     OPEN_POSITIONS_FILE,
-    PAPER_TRADE_FIELDNAMES,
     PAPER_TRADES_FILE,
     POSITIONS_LOG_FILE,
     TRADES_LOG_FILE,
@@ -82,8 +80,6 @@ from logger import (
     get_dashboard_status,
     log_demo_order,
     log_event,
-    log_paper_trade,
-    replace_csv_rows,
 )
 
 # Simple in-memory rate limiter and allowlist helpers for manual buys
@@ -1312,55 +1308,6 @@ def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
     )
 
     return {"success": result.get("success", False), "message": message, "status": status}
-
-
-@app.route("/api/add-test-paper-trade", methods=["POST"])
-def api_add_test_paper_trade():
-    payload = request.get_json(silent=True) or {}
-    symbol = (payload.get("symbol") or "").strip().upper()
-    signal = (payload.get("signal") or "STRONG_RALLY").strip().upper()
-    change_percent = payload.get("change_percent", 1.0)
-    base_price = payload.get("base_price", "")
-    current_price = payload.get("current_price", "")
-
-    if not symbol:
-        return jsonify({"success": False, "message": "Missing symbol."}), 400
-
-    # Create a test paper trade row (no protections; this is for dev/debug only)
-    try:
-        log_paper_trade(
-            timestamp=datetime.now(),
-            symbol=symbol,
-            signal=signal,
-            paper_action=("CALL IDEA: test" if signal == "STRONG_RALLY" else "PUT IDEA: test"),
-            base_price=base_price,
-            current_price=current_price,
-            change_percent=change_percent,
-            notes="Created by dashboard test API",
-        )
-        return jsonify({"success": True, "message": "Test paper trade added."})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@app.route("/api/clear-test-paper-trades", methods=["POST"])
-def api_clear_test_paper_trades():
-    payload = request.get_json(silent=True) or {}
-    notes_keyword = (payload.get("notes_keyword") or "Created by dashboard test API").strip()
-
-    try:
-        rows = read_latest_rows(PAPER_TRADES_FILE, limit=10000)
-        filtered_rows = [
-            row for row in rows
-            if notes_keyword not in (row.get("notes") or "")
-        ]
-
-        replace_rows("paper_trades", filtered_rows)
-        replace_csv_rows(PAPER_TRADES_FILE, filtered_rows, PAPER_TRADE_FIELDNAMES)
-
-        return jsonify({"success": True, "message": "Cleared test paper trade rows."})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
 
 
 if __name__ == "__main__":
