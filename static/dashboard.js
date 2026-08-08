@@ -29,6 +29,14 @@ const stageFlowEl = document.getElementById("stageFlow");
 const priceTickerEl = document.getElementById("priceTicker");
 const liveMarketsGridEl = document.getElementById("liveMarketsGrid");
 const liveMarketsPillEl = document.getElementById("liveMarketsPill");
+const commandCenterEl = document.getElementById("commandCenter");
+const commandStatusDotEl = document.getElementById("commandStatusDot");
+const commandHeadlineEl = document.getElementById("commandHeadline");
+const commandBotStateEl = document.getElementById("commandBotState");
+const commandModeEl = document.getElementById("commandMode");
+const commandMarketEl = document.getElementById("commandMarket");
+const commandNextEl = document.getElementById("commandNext");
+const commandLastCycleEl = document.getElementById("commandLastCycle");
 const autoBuyReadinessEl = document.getElementById("autoBuyReadiness");
 const autoBuyStatusGridEl = document.getElementById("autoBuyStatusGrid");
 const candidateListEl = document.getElementById("candidateList");
@@ -66,6 +74,15 @@ function hasNumber(value) {
 
 function money(value) {
   return `$${number(value).toFixed(2)}`;
+}
+
+function sizeFromNotional(price, notional) {
+  const parsedPrice = Number(price);
+  const parsedNotional = Number(notional);
+  if (!Number.isFinite(parsedPrice) || parsedPrice <= 0 || !Number.isFinite(parsedNotional) || parsedNotional <= 0) {
+    return "-";
+  }
+  return Math.max(parsedNotional / parsedPrice, 0.00001).toFixed(5);
 }
 
 function signedPercent(value) {
@@ -165,6 +182,77 @@ async function manualBuyWithNotional(symbol, notional) {
   } finally {
     if (watchInput && previousWatch !== null) watchInput.value = previousWatch;
   }
+}
+
+function confirmManualBuy(item, status) {
+  const modal = document.getElementById("buyConfirmModal");
+  const body = document.getElementById("buyConfirmBody");
+  const cancelBtn = document.getElementById("buyCancelBtn");
+  const confirmBtn = document.getElementById("buyConfirmBtn");
+  const details = status || {};
+  const notional = manualWatchlistNotionalEl ? Number(manualWatchlistNotionalEl.value) || 500 : 500;
+
+  if (!modal || !body || !cancelBtn || !confirmBtn) {
+    return manualBuyWithNotional(item.symbol, notional);
+  }
+
+  const price = item.price || item.current_price || "";
+  const estimatedSize = sizeFromNotional(price, notional);
+  const rows = [
+    ["Symbol", item.symbol || "-"],
+    ["Latest Price", hasNumber(price) ? formatPriceText(price) : "Unavailable"],
+    ["Notional", money(notional)],
+    ["Estimated Size", estimatedSize],
+    ["Route", text(item.tradable_hint)],
+    ["Signal", text(item.signal)],
+    ["Stage", readableEvent(item.stage || "-")],
+    ["Manual Buy", details.manual_buy_enabled ? "Enabled" : "Disabled"],
+  ];
+
+  body.replaceChildren();
+  const summary = document.createElement("div");
+  summary.className = "confirm-summary";
+  rows.forEach(([label, value]) => {
+    const row = document.createElement("div");
+    const labelEl = document.createElement("span");
+    const valueEl = document.createElement("strong");
+    labelEl.textContent = label;
+    valueEl.textContent = value;
+    row.append(labelEl, valueEl);
+    summary.appendChild(row);
+  });
+
+  const note = document.createElement("p");
+  note.className = "confirm-note";
+  note.textContent = details.manual_buy_enabled
+    ? "This sends a protected IG demo BUY request using your server allowlist and rate limit."
+    : "Manual buy is disabled on the server. Enable PAPER_TRADING, ALLOW_MANUAL_BUY, and MANUAL_BUY_ALLOWLIST.";
+  body.append(summary, note);
+
+  modal.style.display = "flex";
+  confirmBtn.disabled = !details.manual_buy_enabled;
+
+  const cleanup = () => {
+    modal.style.display = "none";
+    cancelBtn.removeEventListener("click", onCancel);
+    confirmBtn.removeEventListener("click", onConfirm);
+  };
+
+  const onCancel = () => cleanup();
+  const onConfirm = async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Sending...";
+    try {
+      const success = await manualBuyWithNotional(item.symbol, notional);
+      if (success) cleanup();
+    } finally {
+      confirmBtn.textContent = "Confirm Buy";
+      confirmBtn.disabled = !details.manual_buy_enabled;
+    }
+  };
+
+  cancelBtn.addEventListener("click", onCancel);
+  confirmBtn.addEventListener("click", onConfirm);
 }
 
 function setRows(body, rows, columns, emptyText) {
@@ -397,6 +485,26 @@ function renderAutoBuyStatus(status) {
   });
 }
 
+function renderCommandCenter(data) {
+  if (!commandCenterEl) return;
+  const status = data.auto_buy_status || {};
+  const bot = data.bot_status || {};
+  const tone = status.tone || "info";
+
+  commandCenterEl.classList.remove("tone-good", "tone-warn", "tone-danger", "tone-info");
+  commandCenterEl.classList.add(`tone-${tone}`);
+  if (commandStatusDotEl) commandStatusDotEl.className = `status-dot tone-${tone}`;
+  if (commandHeadlineEl) commandHeadlineEl.textContent = status.readiness || "Unknown";
+  if (commandBotStateEl) commandBotStateEl.textContent = readableEvent(bot.state || "unknown");
+  if (commandModeEl) commandModeEl.textContent = status.mode || "Off";
+  if (commandMarketEl) commandMarketEl.textContent = status.market_mode || "-";
+  if (commandNextEl) commandNextEl.textContent = status.next_action || "-";
+  if (commandLastCycleEl) {
+    const age = Number(bot.age_seconds);
+    commandLastCycleEl.textContent = Number.isFinite(age) ? `${age}s ago` : (bot.timestamp || "-");
+  }
+}
+
 function renderCandidates(rows) {
   if (!candidateListEl) return;
   candidateListEl.replaceChildren();
@@ -439,8 +547,15 @@ function renderCandidates(rows) {
 
     const reason = document.createElement("small");
     reason.textContent = item.reason || "-";
+    const diagnostics = document.createElement("ul");
+    diagnostics.className = "candidate-diagnostics";
+    (item.diagnostics || []).slice(0, 5).forEach((detail) => {
+      const node = document.createElement("li");
+      node.textContent = detail;
+      diagnostics.appendChild(node);
+    });
 
-    main.append(title, meta, reason);
+    main.append(title, meta, reason, diagnostics);
     node.append(rank, main);
     candidateListEl.appendChild(node);
   });
@@ -490,20 +605,7 @@ function renderManualWatchlistOrders(rows, status) {
     action.className = "refresh-button manual-buy-button";
     action.textContent = `Buy ${item.symbol || ""}`.trim();
     action.disabled = !details.manual_buy_enabled;
-    action.addEventListener("click", async () => {
-      const notional = manualWatchlistNotionalEl ? Number(manualWatchlistNotionalEl.value) : 500;
-      const confirmed = window.confirm(`Confirm BUY ${item.symbol} for approx $${notional || 500}?`);
-      if (!confirmed) return;
-
-      action.disabled = true;
-      action.textContent = "Sending...";
-      try {
-        await manualBuyWithNotional(item.symbol, notional || 500);
-      } finally {
-        action.disabled = !details.manual_buy_enabled;
-        action.textContent = `Buy ${item.symbol || ""}`.trim();
-      }
-    });
+    action.addEventListener("click", () => confirmManualBuy(item, details));
 
     card.append(header, meta, reason, action);
     manualWatchlistOrdersEl.appendChild(card);
@@ -654,6 +756,7 @@ function render(data) {
   if (winRateEl) winRateEl.textContent = `${number(data.win_rate).toFixed(1)}% win rate`;
   updateMetricCard(netPlEl, data.net_pl);
 
+  renderCommandCenter(data);
   renderSummary(data);
   renderStageFlow(data.watchlist_stage_summary);
   renderPriceTicker(data.price_ticker);

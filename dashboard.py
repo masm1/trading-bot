@@ -719,6 +719,21 @@ def auto_buy_status(bot_status, watchlist_rows):
         readiness = "Armed"
         tone = "info"
 
+    next_action = "Enable auto trading."
+    if armed:
+        if stage == "SAVE_BASE_PRICE":
+            next_action = "Saving opening base prices."
+        elif stage in ["CHECK_MARKET_OPEN_SIGNAL", "CHECK_T_PLUS_15", "CHECK_T_PLUS_30", "CHECK_T_PLUS_45"]:
+            next_action = "Evaluating candidates for orders."
+        elif stage in ["WAITING_FOR_MARKET_OPEN", "WAITING_FOR_T_MINUS_15"]:
+            next_action = "Waiting for the market window."
+        elif stage in ["WAITING_FOR_SIGNAL_WINDOW"]:
+            next_action = "Waiting for signal window."
+        elif stage in ["MARKET_OPEN_WINDOW_COMPLETE", "EVENT_COMPLETE"]:
+            next_action = "Session window complete."
+        elif stage == "MARKET_CLOSED_WEEKEND":
+            next_action = "Market closed for the weekend."
+
     return {
         "armed": armed,
         "readiness": readiness,
@@ -726,7 +741,9 @@ def auto_buy_status(bot_status, watchlist_rows):
         "mode": "Trend Buy" if AUTO_TREND_BUY_TRADING else ("Signal Orders" if AUTO_SIGNAL_DEMO_TRADING else "Off"),
         "market_mode": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings",
         "stage": stage or "Unknown",
+        "next_action": next_action,
         "bot_state": bot_status.get("state", "unknown"),
+        "bot_age_seconds": bot_status.get("age_seconds"),
         "bot_message": bot_status.get("message", ""),
         "watchlist_symbols": [row.get("symbol", "") for row in watchlist_rows],
         "auto_demo_trading": AUTO_DEMO_TRADING,
@@ -762,6 +779,8 @@ def auto_buy_candidates(watchlist_rows, price_ticker):
         ticker = ticker_by_symbol.get(symbol, {})
         base_price = to_float(latest_check.get("base_price"))
         current_price = to_float(latest_check.get("current_price"))
+        live_price = to_float(ticker.get("price"))
+        display_price = live_price if live_price is not None else (current_price if current_price is not None else "")
         result = None
 
         if base_price is not None and current_price is not None:
@@ -773,29 +792,64 @@ def auto_buy_candidates(watchlist_rows, price_ticker):
         direction = demo_direction_for_signal(signal)
         tradable_hint = "mapped" if symbol in EPIC_MAP else ("search" if symbol in IG_SEARCH_MAP else "unknown")
         reason = ""
+        diagnostics = []
         eligible = False
+
+        if base_price is None:
+            diagnostics.append("No base price saved")
+        else:
+            diagnostics.append(f"Base ${base_price:.2f}")
+
+        if current_price is None and live_price is None:
+            diagnostics.append("No current price")
+        elif display_price != "":
+            diagnostics.append(f"Price ${float(display_price):.2f}")
+
+        if ticker.get("quote_source"):
+            diagnostics.append(f"Quote {ticker.get('quote_source')}")
+        elif ticker.get("quote_message"):
+            diagnostics.append(ticker.get("quote_message"))
+
+        if latest_check.get("timestamp"):
+            diagnostics.append(f"Last signal {latest_check.get('timestamp')}")
+
+        if tradable_hint == "mapped":
+            diagnostics.append("IG EPIC mapped")
+        elif tradable_hint == "search":
+            diagnostics.append("IG search required")
+        else:
+            diagnostics.append("No IG route")
 
         if not (AUTO_SIGNAL_DEMO_TRADING or AUTO_TREND_BUY_TRADING):
             reason = "Auto trading is disabled."
+            diagnostics.append("AUTO_SIGNAL_DEMO_TRADING and AUTO_TREND_BUY_TRADING are off")
         elif symbol in traded_symbols:
             reason = "Already traded today."
+            diagnostics.append("Once-per-symbol-per-day protection blocked this")
         elif stage not in ["CHECK_MARKET_OPEN_SIGNAL", "CHECK_T_PLUS_15", "CHECK_T_PLUS_30", "CHECK_T_PLUS_45"]:
             reason = f"Waiting for {stage.replace('_', ' ').title()}."
+            diagnostics.append("Outside configured signal window")
         elif not result:
             reason = "No signal check with base/current price yet."
+            diagnostics.append("Needs both base price and signal check")
         elif AUTO_TREND_BUY_TRADING and signal != "STRONG_RALLY":
             reason = "Trend buy only accepts strong rallies."
+            diagnostics.append(f"Signal is {signal}")
         elif AUTO_TREND_BUY_TRADING and to_float(change_percent) < TREND_BUY_MIN_CHANGE_PERCENT:
             reason = "Move is below trend buy threshold."
+            diagnostics.append(f"Needs at least {TREND_BUY_MIN_CHANGE_PERCENT:.2f}%")
         elif to_float(quality) is not None and to_float(quality) < MIN_SIGNAL_QUALITY:
             reason = "Signal quality is below minimum."
+            diagnostics.append(f"Needs quality {MIN_SIGNAL_QUALITY:.2f}+")
         elif AUTO_SIGNAL_DEMO_TRADING and direction != "BUY" and not AUTO_TREND_BUY_TRADING:
             reason = "Signal would not create a buy order."
+            diagnostics.append(f"Signal direction would be {direction or 'none'}")
         elif tradable_hint == "unknown":
             reason = "No IG search mapping configured."
         else:
             eligible = True
             reason = "Eligible for auto buy."
+            diagnostics.append("All auto-buy checks passed")
 
         score_quality = to_float(quality) or 0
         score_change = to_float(change_percent) or 0
@@ -806,10 +860,13 @@ def auto_buy_candidates(watchlist_rows, price_ticker):
                 "signal": signal,
                 "quality": quality,
                 "change_percent": change_percent,
-                "price": ticker.get("price", current_price if current_price is not None else ""),
+                "base_price": base_price if base_price is not None else "",
+                "current_price": current_price if current_price is not None else "",
+                "price": display_price,
                 "direction": "BUY" if eligible else (direction or ""),
                 "eligible": eligible,
                 "reason": reason,
+                "diagnostics": diagnostics,
                 "tradable_hint": tradable_hint,
                 "score": round(score_quality * 100 + max(score_change, 0), 2),
                 "last_signal_time": latest_check.get("timestamp", ""),

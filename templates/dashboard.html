@@ -27,6 +27,38 @@
       </div>
     </header>
 
+    <section class="command-center" id="commandCenter">
+      <div class="command-primary">
+        <span class="status-dot" id="commandStatusDot"></span>
+        <div>
+          <p class="eyebrow">Command Center</p>
+          <h2 id="commandHeadline">{{ data.auto_buy_status.readiness }}</h2>
+        </div>
+      </div>
+      <div class="command-strip">
+        <div>
+          <span>Bot</span>
+          <strong id="commandBotState">{{ data.bot_status.state }}</strong>
+        </div>
+        <div>
+          <span>Mode</span>
+          <strong id="commandMode">{{ data.auto_buy_status.mode }}</strong>
+        </div>
+        <div>
+          <span>Market</span>
+          <strong id="commandMarket">{{ data.auto_buy_status.market_mode }}</strong>
+        </div>
+        <div>
+          <span>Next</span>
+          <strong id="commandNext">{{ data.auto_buy_status.next_action }}</strong>
+        </div>
+        <div>
+          <span>Last Cycle</span>
+          <strong id="commandLastCycle">{{ data.bot_status.timestamp or "-" }}</strong>
+        </div>
+      </div>
+    </section>
+
     <section class="ticker-tape" aria-label="Watchlist price ticker">
       <div class="ticker-label">Market Tape</div>
       <div class="ticker-window">
@@ -317,10 +349,16 @@
   </script>
   <!-- Manual Buy Confirmation Modal -->
   <div id="buyConfirmModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
-    <div style="background:var(--panel);padding:18px;border-radius:8px;min-width:320px;max-width:520px;color:var(--text);">
-      <h3 style="margin:0 0 10px;">Confirm Manual Buy</h3>
-      <div id="buyConfirmBody" style="margin-bottom:12px;"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
+    <div class="confirm-dialog">
+      <div class="sectionHeader">
+        <div>
+          <p class="eyebrow">Manual Execution</p>
+          <h3>Confirm Buy</h3>
+        </div>
+        <span class="badge tone_info">IG Demo</span>
+      </div>
+      <div id="buyConfirmBody" class="confirm-body"></div>
+      <div class="confirm-actions">
         <button id="buyCancelBtn" class="refresh-button" type="button">Cancel</button>
         <button id="buyConfirmBtn" class="refresh-button" type="button">Confirm Buy</button>
       </div>
