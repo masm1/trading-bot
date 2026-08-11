@@ -122,6 +122,27 @@ function badge(value) {
   return pill;
 }
 
+function fact(label, value, className) {
+  const item = document.createElement("div");
+  item.className = "fact";
+  const labelEl = document.createElement("span");
+  const valueEl = document.createElement("strong");
+  labelEl.textContent = label;
+  valueEl.textContent = text(value);
+  if (className) valueEl.className = className;
+  item.append(labelEl, valueEl);
+  return item;
+}
+
+function factGrid(items, className = "fact-grid") {
+  const grid = document.createElement("div");
+  grid.className = className;
+  items.forEach(([label, value, valueClass]) => {
+    grid.appendChild(fact(label, value, valueClass));
+  });
+  return grid;
+}
+
 function setModeButtons(data) {
   const enabled = Boolean(data.config_status?.market_open_auto_mode);
   modeButtons.forEach((button) => {
@@ -661,14 +682,16 @@ function renderCandidates(rows) {
     const state = toneBadge(item.eligible ? "Ready" : "Skipped", item.eligible ? "good" : "warn");
     title.append(symbol, state);
 
-    const meta = document.createElement("div");
-    meta.className = "candidate-meta";
-    meta.append(
-      badge(item.signal || "WAITING"),
-      document.createTextNode(`Change ${item.change_percent === "" ? "-" : signedPercent(item.change_percent)}`),
-      document.createTextNode(`Quality ${item.quality === "" ? "-" : number(item.quality).toFixed(2)}`),
-      document.createTextNode(`Route ${text(item.tradable_hint)}`)
-    );
+    const signalRow = document.createElement("div");
+    signalRow.className = "candidate-signal-row";
+    signalRow.appendChild(badge(item.signal || "WAITING"));
+
+    const meta = factGrid([
+      ["Price", hasNumber(item.price) ? formatPriceText(item.price) : "Waiting"],
+      ["Change", item.change_percent === "" ? "-" : signedPercent(item.change_percent), number(item.change_percent) > 0 ? "tone-good" : number(item.change_percent) < 0 ? "tone-danger" : "tone-warn"],
+      ["Quality", item.quality === "" ? "-" : number(item.quality).toFixed(2)],
+      ["Route", text(item.tradable_hint)],
+    ], "candidate-facts");
 
     const reason = document.createElement("small");
     reason.textContent = item.reason || "-";
@@ -680,7 +703,7 @@ function renderCandidates(rows) {
       diagnostics.appendChild(node);
     });
 
-    main.append(title, meta, reason, diagnostics);
+    main.append(title, signalRow, meta, reason, diagnostics);
     node.append(rank, main);
     candidateListEl.appendChild(node);
   });
@@ -712,13 +735,12 @@ function renderManualWatchlistOrders(rows, status) {
     const state = toneBadge(details.manual_buy_enabled ? "Manual Ready" : "Manual Disabled", details.manual_buy_enabled ? "good" : "warn");
     header.append(symbol, state);
 
-    const meta = document.createElement("div");
-    meta.className = "manual-order-meta";
-    meta.append(
-      document.createTextNode(`Price ${formatPriceText(item.price)}`),
-      document.createTextNode(`Stage ${readableEvent(item.stage || "-")}`),
-      document.createTextNode(`Route ${text(item.tradable_hint)}`)
-    );
+    const meta = factGrid([
+      ["Price", formatPriceText(item.price)],
+      ["Signal", text(item.signal || "-")],
+      ["Stage", readableEvent(item.stage || "-")],
+      ["Route", text(item.tradable_hint)],
+    ], "manual-order-meta");
 
     const reason = document.createElement("small");
     reason.textContent = details.manual_buy_enabled

@@ -6,7 +6,8 @@
   --panel-raised: #202832;
   --text: #eef2f4;
   --muted: #9ca8b3;
-  --line: #303944;
+  --line: #2b3440;
+  --line-soft: rgba(255, 255, 255, 0.055);
   --accent: #48c7b0;
   --accent-2: #7aa7ff;
   --good: #50d47d;
@@ -17,7 +18,7 @@
   --bad-soft: rgba(255, 107, 107, 0.12);
   --warn-soft: rgba(244, 184, 74, 0.12);
   --info-soft: rgba(122, 167, 255, 0.1);
-  --shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
 }
 
 * {
@@ -28,14 +29,14 @@ body {
   margin: 0;
   min-width: 320px;
   font-family: Inter, Arial, Helvetica, sans-serif;
-  background: linear-gradient(180deg, #101418 0%, #14181d 46%, #0f1216 100%);
+  background: #101418;
   color: var(--text);
 }
 
 .app-shell {
-  width: min(1480px, 100%);
+  width: min(1420px, 100%);
   margin: 0 auto;
-  padding: 22px;
+  padding: 18px;
 }
 
 .topbar {
@@ -43,7 +44,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 18px 0 22px;
+  padding: 10px 0 16px;
 }
 
 .topbar-actions {
@@ -82,7 +83,7 @@ body {
 }
 
 .brand h1 {
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.15;
 }
 
@@ -160,8 +161,8 @@ body {
 
 .overview {
   display: grid;
-  grid-template-columns: 1.3fr repeat(5, 1fr);
-  gap: 14px;
+  grid-template-columns: 1.25fr repeat(5, 1fr);
+  gap: 10px;
   margin-bottom: 14px;
 }
 
@@ -169,7 +170,7 @@ body {
   display: grid;
   grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
   gap: 1px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
@@ -186,13 +187,13 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 88px;
-  padding: 18px;
+  min-height: 76px;
+  padding: 16px;
 }
 
 .command-primary h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1.1;
 }
 
@@ -239,8 +240,8 @@ body {
 }
 
 .command-strip > div {
-  min-height: 88px;
-  padding: 16px;
+  min-height: 76px;
+  padding: 14px;
 }
 
 .command-strip span {
@@ -265,7 +266,7 @@ body {
   grid-template-columns: 118px minmax(0, 1fr);
   align-items: stretch;
   min-height: 48px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
@@ -367,8 +368,8 @@ body {
 }
 
 .metric-card {
-  min-height: 116px;
-  padding: 17px;
+  min-height: 96px;
+  padding: 14px;
   position: relative;
   overflow: hidden;
 }
@@ -409,7 +410,7 @@ body {
   display: block;
   margin-top: 12px;
   color: var(--text);
-  font-size: 28px;
+  font-size: 23px;
   line-height: 1.08;
   overflow-wrap: anywhere;
 }
@@ -418,7 +419,7 @@ body {
   display: block;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .metric-card.profit strong,
@@ -455,8 +456,8 @@ main {
 
 .command-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
-  gap: 14px;
+  grid-template-columns: minmax(300px, 0.76fr) minmax(480px, 1.24fr);
+  gap: 10px;
 }
 
 .status-grid {
@@ -538,18 +539,25 @@ main {
 }
 
 .candidate-list {
-  max-height: 372px;
+  max-height: 342px;
   overflow: auto;
   scrollbar-color: var(--line) transparent;
 }
 
 .candidate-row {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 12px;
-  padding: 14px 16px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  padding: 13px 14px;
   border-bottom: 1px solid rgba(48, 57, 68, 0.72);
   background: var(--panel);
+}
+
+.candidate-row:hover,
+.manual-order-card:hover,
+.discovery-row:hover,
+.live-market-card:hover {
+  background: #1a2027;
 }
 
 .candidate-row:last-child {
@@ -568,8 +576,8 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--muted);
@@ -594,19 +602,54 @@ main {
 
 .candidate-title strong {
   color: var(--text);
-  font-size: 17px;
+  font-size: 18px;
 }
 
-.candidate-meta {
+.candidate-signal-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 8px;
+}
+
+.candidate-facts,
+.manual-order-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--line-soft);
+}
+
+.fact {
+  min-width: 0;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.fact span {
+  display: block;
   color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.fact strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
   font-size: 12px;
-  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .candidate-main small {
   display: block;
-  margin-top: 9px;
+  margin-top: 10px;
   color: var(--muted);
   line-height: 1.35;
 }
@@ -671,7 +714,7 @@ main {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-  max-height: 360px;
+  max-height: 250px;
   overflow: auto;
   background: var(--line);
 }
@@ -758,7 +801,7 @@ main {
 
 .manual-order-card,
 .manual-order-empty {
-  min-height: 168px;
+  min-height: 184px;
   padding: 15px;
   background: var(--panel);
 }
@@ -766,7 +809,7 @@ main {
 .manual-order-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 .manual-order-header {
@@ -778,15 +821,12 @@ main {
 
 .manual-order-header strong {
   color: var(--text);
-  font-size: 18px;
+  font-size: 19px;
 }
 
 .manual-order-meta {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0;
 }
 
 .manual-order-card small {
@@ -796,6 +836,9 @@ main {
 
 .manual-buy-button {
   margin-top: auto;
+  min-height: 42px;
+  justify-content: center;
+  background: rgba(72, 199, 176, 0.12);
 }
 
 .manual-order-empty {
@@ -1320,6 +1363,11 @@ tr:last-child td {
   .manual-order-grid,
   .pl-summary {
     grid-template-columns: 1fr;
+  }
+
+  .candidate-facts,
+  .manual-order-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ticker-label {
