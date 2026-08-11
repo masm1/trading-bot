@@ -224,6 +224,7 @@ class IGService:
             "epic": epic,
             "expiry": "-",
             "forceOpen": True,
+            "guaranteedStop": False,
             "orderType": "MARKET",
             "size": float(size),
         }
@@ -258,6 +259,7 @@ class IGService:
         payload = {
             "dealId": deal_id,
             "direction": close_direction,
+            "guaranteedStop": False,
             "orderType": "MARKET",
             "size": float(size),
         }
