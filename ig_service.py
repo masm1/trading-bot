@@ -1,5 +1,6 @@
 import re
 import time
+from decimal import Decimal, InvalidOperation, ROUND_FLOOR
 
 try:
     import requests
@@ -149,6 +150,44 @@ class IGService:
 
         return self._get_finnhub_price(symbol)
 
+    def get_market_details(self, epic):
+        if not self.logged_in or not epic:
+            return {}
+
+        try:
+            response = self._request_with_retry(
+                "GET",
+                BASE_URL + f"/markets/{epic}",
+                headers=self._headers("3"),
+            )
+            if response.status_code != 200:
+                return {}
+            return response.json()
+        except requests.RequestException:
+            return {}
+
+    def normalize_order_size(self, epic, size):
+        details = self.get_market_details(epic)
+        dealing_rules = details.get("dealingRules", {})
+        instrument = details.get("instrument", {})
+        min_deal_size = self._decimal_rule_value(dealing_rules.get("minDealSize"))
+        lot_size = self._to_decimal(instrument.get("lotSize"))
+        raw_size = self._to_decimal(size)
+
+        if raw_size is None:
+            return None
+
+        increment = min_deal_size or lot_size or Decimal("0.00001")
+        if increment <= 0:
+            increment = Decimal("0.00001")
+
+        normalized = (raw_size / increment).to_integral_value(rounding=ROUND_FLOOR) * increment
+        if min_deal_size and normalized < min_deal_size:
+            return None
+
+        decimal_places = max(0, -increment.as_tuple().exponent)
+        return float(round(normalized, decimal_places))
+
     def search_market(self, search_term):
         if not self.logged_in or not search_term:
             return None
@@ -225,6 +264,9 @@ class IGService:
             return {"success": False, "message": "Not logged in"}
         if not epic:
             return {"success": False, "message": "Missing IG epic. Search mapping did not return a tradable market."}
+        normalized_size = self.normalize_order_size(epic, size)
+        if normalized_size is None or normalized_size <= 0:
+            return {"success": False, "message": f"Order size {size} is below IG minimum/increment for {epic}."}
 
         payload = {
             "currencyCode": "USD",
@@ -234,7 +276,7 @@ class IGService:
             "forceOpen": True,
             "guaranteedStop": False,
             "orderType": "MARKET",
-            "size": float(size),
+            "size": normalized_size,
         }
 
         try:
@@ -256,6 +298,7 @@ class IGService:
                     "message": data.get("reason", "") or data.get("message", "") or "IG did not return a deal reference.",
                     "deal_reference": "",
                     "deal_id": data.get("dealId", ""),
+                    "size": normalized_size,
                 }
 
             confirmation = self.confirm_deal(deal_reference)
@@ -268,6 +311,7 @@ class IGService:
                 "deal_reference": deal_reference,
                 "deal_id": confirmation.get("deal_id", "") or data.get("dealId", ""),
                 "deal_status": confirmation.get("deal_status", ""),
+                "size": normalized_size,
             }
 
         except requests.RequestException as exc:
@@ -384,6 +428,19 @@ class IGService:
             if deal_id:
                 return deal_id
         return ""
+
+    def _decimal_rule_value(self, rule):
+        if not isinstance(rule, dict):
+            return None
+        return self._to_decimal(rule.get("value"))
+
+    def _to_decimal(self, value):
+        if value in (None, ""):
+            return None
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, ValueError):
+            return None
 
     def _headers(self, version):
         headers = dict(self.session_headers)

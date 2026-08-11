@@ -173,13 +173,14 @@ def run_demo_trade_plan(ig_service):
         message = result.get("message", "")
         deal_reference = result.get("deal_reference", "")
         deal_id = result.get("deal_id", "")
+        submitted_size = result.get("size", size)
 
         log_demo_order(
             timestamp=datetime.now(),
             symbol=plan.symbol,
             epic=epic,
             direction=plan.direction,
-            size=size,
+            size=submitted_size,
             status=status,
             deal_reference=deal_reference,
             deal_id=deal_id,
@@ -277,13 +278,14 @@ def place_demo_order_from_signal(ig_service, signal_info):
     message = result.get("message", "")
     deal_reference = result.get("deal_reference", "")
     deal_id = result.get("deal_id", "")
+    submitted_size = result.get("size", size)
 
     log_demo_order(
         timestamp=datetime.now(),
         symbol=symbol,
         epic=epic,
         direction=direction,
-        size=size,
+        size=submitted_size,
         status=status,
         deal_reference=deal_reference,
         deal_id=deal_id,
@@ -410,13 +412,14 @@ def place_trend_buy_order_from_signal(ig_service, signal_info):
     message = result.get("message", "")
     deal_reference = result.get("deal_reference", "")
     deal_id = result.get("deal_id", "")
+    submitted_size = result.get("size", size)
 
     log_demo_order(
         timestamp=datetime.now(),
         symbol=symbol,
         epic=epic,
         direction="BUY",
-        size=size,
+        size=submitted_size,
         status=status,
         deal_reference=deal_reference,
         deal_id=deal_id,

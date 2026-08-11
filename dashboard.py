@@ -1380,13 +1380,14 @@ def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
     message = result.get("message", "")
     deal_reference = result.get("deal_reference", "")
     deal_id = result.get("deal_id", "")
+    submitted_size = result.get("size", size)
 
     log_demo_order(
         timestamp=datetime.now(),
         symbol=symbol,
         epic=epic,
         direction="BUY",
-        size=size,
+        size=submitted_size,
         status=status,
         deal_reference=deal_reference,
         deal_id=deal_id,
