@@ -217,6 +217,8 @@ class IGService:
     def place_demo_market_order(self, epic, direction, size):
         if not self.logged_in:
             return {"success": False, "message": "Not logged in"}
+        if not epic:
+            return {"success": False, "message": "Missing IG epic. Search mapping did not return a tradable market."}
 
         payload = {
             "currencyCode": "USD",

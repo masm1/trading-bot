@@ -1356,10 +1356,12 @@ def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
     if not epic:
         search_term = IG_SEARCH_MAP.get(symbol_key, symbol)
         epic = ig.search_market(search_term)
+    if not epic:
+        return {"success": False, "message": f"Could not find a tradable IG market for {symbol}."}
 
     current_price = ig.get_price_for_symbol(symbol_key, epic)
-    if current_price is None and epic is None:
-        return {"success": False, "message": f"Could not find IG market for {symbol}."}
+    if current_price is None:
+        return {"success": False, "message": f"Could not get IG/Finnhub price for {symbol}."}
     size = _calculate_demo_size(current_price, notional_usd)
     if size is None:
         return {"success": False, "message": "Could not calculate buy size from current price."}
