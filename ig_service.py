@@ -156,7 +156,7 @@ class IGService:
                 "GET",
                 BASE_URL + "/markets",
                 params={"searchTerm": search_term},
-                headers=self._headers("3"),
+                headers=self._headers("1"),
             )
 
             if response.status_code != 200:
@@ -166,7 +166,11 @@ class IGService:
             if not markets:
                 return None
 
-            return markets[0].get("epic")
+            for market in markets:
+                if market.get("marketStatus") == "TRADEABLE" and market.get("epic"):
+                    return market.get("epic")
+
+            return None
 
         except requests.RequestException:
             return None

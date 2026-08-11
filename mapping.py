@@ -3,6 +3,15 @@
 EPIC_MAP = {
     "BTC": "CS.D.BITCOIN.CFD.IP",
     "ETH": "CS.D.ETHUSD.CFD.IP",
+    "NFLX": "UC.D.NFLX.CASH.IP",
+    "STLD": "UD.D.STLD.CASH.IP",
+    "IBKR": "UB.D.IBKR.CASH.IP",
+    "APLD": "UA.D.APLDUS.CASH.IP",
+    "TSLA": "UD.D.TSLA.CASH.IP",
+    "INTC": "UB.D.INTC.CASH.IP",
+    "SBUX": "UD.D.SBUX.CASH.IP",
+    "QCOM": "UC.D.QCOM.CASH.IP",
+    "RIVN": "UC.D.RIVNUS.CASH.IP",
 }
 
 # Finnhub symbols used for current price display.
