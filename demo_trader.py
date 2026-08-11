@@ -169,7 +169,7 @@ def run_demo_trade_plan(ig_service):
             size=size,
         )
 
-        status = "SENT" if result.get("success") else "FAILED"
+        status = _order_status(result, "SENT", "FAILED", "PENDING_CONFIRMATION")
         message = result.get("message", "")
         deal_reference = result.get("deal_reference", "")
         deal_id = result.get("deal_id", "")
@@ -273,7 +273,7 @@ def place_demo_order_from_signal(ig_service, signal_info):
         size=size,
     )
 
-    status = "SIGNAL_SENT" if result.get("success") else "SIGNAL_FAILED"
+    status = _order_status(result, "SIGNAL_SENT", "SIGNAL_FAILED", "SIGNAL_PENDING")
     message = result.get("message", "")
     deal_reference = result.get("deal_reference", "")
     deal_id = result.get("deal_id", "")
@@ -406,7 +406,7 @@ def place_trend_buy_order_from_signal(ig_service, signal_info):
         size=size,
     )
 
-    status = "TREND_BUY_SENT" if result.get("success") else "TREND_BUY_FAILED"
+    status = _order_status(result, "TREND_BUY_SENT", "TREND_BUY_FAILED", "TREND_BUY_PENDING")
     message = result.get("message", "")
     deal_reference = result.get("deal_reference", "")
     deal_id = result.get("deal_id", "")
@@ -501,6 +501,14 @@ def _rank_trend_buy_candidates(signal_candidates):
     )
 
 
+def _order_status(result, sent_status, failed_status, pending_status):
+    if result.get("success"):
+        return sent_status
+    if result.get("pending_confirmation"):
+        return pending_status
+    return failed_status
+
+
 def _already_traded_today(symbol):
     if not DEMO_TRADE_ONCE_PER_SYMBOL_PER_DAY:
         return False
@@ -509,7 +517,14 @@ def _already_traded_today(symbol):
         return False
 
     today = datetime.now().date().isoformat()
-    valid_open_statuses = {"SENT", "SIGNAL_SENT", "TREND_BUY_SENT"}
+    valid_open_statuses = {
+        "SENT",
+        "PENDING_CONFIRMATION",
+        "SIGNAL_SENT",
+        "SIGNAL_PENDING",
+        "TREND_BUY_SENT",
+        "TREND_BUY_PENDING",
+    }
 
     with DEMO_ORDERS_FILE.open("r", newline="") as file:
         reader = csv.DictReader(file)
@@ -685,7 +700,7 @@ def _auto_close_if_needed(
         size=size,
     )
 
-    status = "SENT" if result.get("success") else "FAILED"
+    status = _order_status(result, "SENT", "FAILED", "PENDING_CONFIRMATION")
     message = result.get("message", "")
     close_reference = result.get("deal_reference", "")
 

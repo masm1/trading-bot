@@ -169,12 +169,22 @@ function readableEvent(value) {
   const labels = {
     AUTO_SIGNAL_DEMO_ORDER_SIGNAL_SENT: "Signal Order Sent",
     AUTO_SIGNAL_DEMO_ORDER_SIGNAL_FAILED: "Signal Order Failed",
+    AUTO_SIGNAL_DEMO_ORDER_SIGNAL_PENDING: "Signal Order Pending",
+    AUTO_TREND_BUY_ORDER_TREND_BUY_SENT: "Trend Buy Sent",
+    AUTO_TREND_BUY_ORDER_TREND_BUY_FAILED: "Trend Buy Failed",
+    AUTO_TREND_BUY_ORDER_TREND_BUY_PENDING: "Trend Buy Pending",
     DEMO_AUTO_CLOSE_TAKE_PROFIT_SENT: "Take Profit Closed",
     DEMO_AUTO_CLOSE_TAKE_PROFIT_FAILED: "Take Profit Failed",
+    DEMO_AUTO_CLOSE_TAKE_PROFIT_PENDING_CONFIRMATION: "Take Profit Pending",
     DEMO_AUTO_CLOSE_STOP_LOSS_SENT: "Stop Loss Closed",
     DEMO_AUTO_CLOSE_STOP_LOSS_FAILED: "Stop Loss Failed",
+    DEMO_AUTO_CLOSE_STOP_LOSS_PENDING_CONFIRMATION: "Stop Loss Pending",
     DEMO_ORDER_SENT: "Demo Order Sent",
     DEMO_ORDER_FAILED: "Demo Order Failed",
+    DEMO_ORDER_PENDING_CONFIRMATION: "Demo Order Pending",
+    MANUAL_BUY_MANUAL_BUY_SENT: "Manual Buy Sent",
+    MANUAL_BUY_MANUAL_BUY_FAILED: "Manual Buy Failed",
+    MANUAL_BUY_MANUAL_BUY_PENDING: "Manual Buy Pending",
     SIGNAL_CHECK: "Signal Check",
     BASE_PRICE_SAVED: "Base Saved",
   };
@@ -200,6 +210,11 @@ async function manualBuy(symbol) {
       body: JSON.stringify(payload),
     });
     const data = await response.json();
+    if (data.pending_confirmation) {
+      alert(`Buy pending IG confirmation: ${data.message || "Check open positions shortly."}`);
+      refresh();
+      return true;
+    }
     if (!response.ok || !data.success) {
       alert(`Buy failed: ${data.message || "Unknown error"}`);
       return false;

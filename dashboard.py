@@ -723,9 +723,13 @@ def traded_today_symbols():
     rows = read_latest_db_rows("demo_orders", DEMO_ORDERS_FILE, limit=500)
     valid_statuses = {
         "SENT",
+        "PENDING_CONFIRMATION",
         "SIGNAL_SENT",
+        "SIGNAL_PENDING",
         "TREND_BUY_SENT",
+        "TREND_BUY_PENDING",
         "MANUAL_BUY_SENT",
+        "MANUAL_BUY_PENDING",
     }
     for row in rows:
         symbol = (row.get("symbol") or "").strip().upper()
@@ -1342,7 +1346,7 @@ def api_manual_buy():
         return jsonify({"success": False, "message": "Rate limit exceeded for manual buys. Try again later."}), 429
 
     result = manual_buy_order(symbol, notional_usd)
-    status_code = 200 if result.get("success") else 400
+    status_code = 200 if result.get("success") else (202 if result.get("pending_confirmation") else 400)
     return jsonify(result), status_code
 
 
@@ -1367,7 +1371,12 @@ def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
         return {"success": False, "message": "Could not calculate buy size from current price."}
 
     result = ig.place_demo_market_order(epic=epic, direction="BUY", size=size)
-    status = "MANUAL_BUY_SENT" if result.get("success") else "MANUAL_BUY_FAILED"
+    if result.get("success"):
+        status = "MANUAL_BUY_SENT"
+    elif result.get("pending_confirmation"):
+        status = "MANUAL_BUY_PENDING"
+    else:
+        status = "MANUAL_BUY_FAILED"
     message = result.get("message", "")
     deal_reference = result.get("deal_reference", "")
     deal_id = result.get("deal_id", "")
@@ -1391,7 +1400,16 @@ def manual_buy_order(symbol, notional_usd=SIGNAL_DEMO_NOTIONAL_USD):
         notes=message,
     )
 
-    return {"success": result.get("success", False), "message": message, "status": status}
+    return {
+        "success": result.get("success", False),
+        "pending_confirmation": result.get("pending_confirmation", False),
+        "confirmed": result.get("confirmed", False),
+        "message": message,
+        "status": status,
+        "deal_reference": deal_reference,
+        "deal_id": deal_id,
+        "deal_status": result.get("deal_status", ""),
+    }
 
 
 if __name__ == "__main__":

@@ -20,6 +20,8 @@ BASE_URL = IG_BASE_URL
 TIMEOUT = (5, 20)
 MAX_RETRIES = 3
 RETRY_BACKOFF_SECONDS = 2
+CONFIRM_ATTEMPTS = 5
+CONFIRM_DELAY_SECONDS = 1
 BASE_HEADERS = {
     "Accept": "application/json; charset=UTF-8",
     "Content-Type": "application/json; charset=UTF-8",
@@ -247,15 +249,78 @@ class IGService:
                 return {"success": False, "message": self._safe_response_text(response)}
 
             data = response.json()
+            deal_reference = data.get("dealReference", "")
+            if not deal_reference:
+                return {
+                    "success": False,
+                    "message": data.get("reason", "") or data.get("message", "") or "IG did not return a deal reference.",
+                    "deal_reference": "",
+                    "deal_id": data.get("dealId", ""),
+                }
+
+            confirmation = self.confirm_deal(deal_reference)
+            confirmation["deal_reference"] = deal_reference
             return {
-                "success": True,
-                "message": data.get("reason", "") or data.get("message", ""),
-                "deal_reference": data.get("dealReference", ""),
-                "deal_id": data.get("dealId", ""),
+                "success": confirmation.get("success", False),
+                "confirmed": confirmation.get("confirmed", False),
+                "pending_confirmation": confirmation.get("pending_confirmation", False),
+                "message": confirmation.get("message", "") or data.get("reason", "") or data.get("message", ""),
+                "deal_reference": deal_reference,
+                "deal_id": confirmation.get("deal_id", "") or data.get("dealId", ""),
+                "deal_status": confirmation.get("deal_status", ""),
             }
 
         except requests.RequestException as exc:
             return {"success": False, "message": str(exc)}
+
+    def confirm_deal(self, deal_reference):
+        if not self.logged_in:
+            return {"success": False, "confirmed": False, "message": "Not logged in"}
+        if not deal_reference:
+            return {"success": False, "confirmed": False, "message": "Missing deal reference."}
+
+        last_message = ""
+        for attempt in range(1, CONFIRM_ATTEMPTS + 1):
+            try:
+                response = self._request_with_retry(
+                    "GET",
+                    BASE_URL + f"/confirms/{deal_reference}",
+                    headers=self._headers("1"),
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    deal_status = (data.get("dealStatus") or "").upper()
+                    reason = data.get("reason", "") or data.get("status", "")
+                    deal_id = data.get("dealId", "") or self._deal_id_from_affected_deals(data)
+                    success = deal_status == "ACCEPTED"
+                    return {
+                        "success": success,
+                        "confirmed": True,
+                        "message": reason,
+                        "deal_reference": deal_reference,
+                        "deal_id": deal_id,
+                        "deal_status": deal_status,
+                    }
+
+                last_message = self._safe_response_text(response)
+                if response.status_code != 404:
+                    break
+            except requests.RequestException as exc:
+                last_message = str(exc)
+
+            if attempt < CONFIRM_ATTEMPTS:
+                time.sleep(CONFIRM_DELAY_SECONDS)
+
+        return {
+            "success": False,
+            "confirmed": False,
+            "pending_confirmation": True,
+            "message": f"Order submitted but IG confirmation is unavailable. Deal reference: {deal_reference}. {last_message}".strip(),
+            "deal_reference": deal_reference,
+            "deal_id": "",
+            "deal_status": "",
+        }
 
     def close_demo_position(self, deal_id, direction, size):
         if not self.logged_in:
@@ -289,14 +354,36 @@ class IGService:
                 }
 
             data = response.json()
+            deal_reference = data.get("dealReference", "")
+            if not deal_reference:
+                return {
+                    "success": False,
+                    "confirmed": False,
+                    "message": data.get("reason", "") or data.get("message", "") or "IG did not return a close deal reference.",
+                    "deal_reference": "",
+                }
+
+            confirmation = self.confirm_deal(deal_reference)
             return {
-                "success": True,
-                "message": data.get("reason", "") or data.get("message", ""),
-                "deal_reference": data.get("dealReference", ""),
+                "success": confirmation.get("success", False),
+                "confirmed": confirmation.get("confirmed", False),
+                "pending_confirmation": confirmation.get("pending_confirmation", False),
+                "message": confirmation.get("message", "") or data.get("reason", "") or data.get("message", ""),
+                "deal_reference": deal_reference,
+                "deal_id": confirmation.get("deal_id", ""),
+                "deal_status": confirmation.get("deal_status", ""),
             }
 
         except requests.RequestException as exc:
             return {"success": False, "message": str(exc), "deal_reference": ""}
+
+    def _deal_id_from_affected_deals(self, data):
+        affected_deals = data.get("affectedDeals") or []
+        for deal in affected_deals:
+            deal_id = deal.get("dealId")
+            if deal_id:
+                return deal_id
+        return ""
 
     def _headers(self, version):
         headers = dict(self.session_headers)
