@@ -350,8 +350,17 @@ def place_top_trend_buy_order(ig_service, signal_candidates):
         print("No eligible bullish trend candidates for auto buy.")
         return 0
 
-    selected = ranked_candidates[0]
-    return 1 if place_trend_buy_order_from_signal(ig_service, selected) else 0
+    for selected in ranked_candidates:
+        if place_trend_buy_order_from_signal(ig_service, selected):
+            return 1
+
+        print(
+            f"{selected.get('symbol', '-')}: trend buy candidate failed; "
+            "trying next eligible candidate."
+        )
+
+    print("No ranked bullish trend candidate produced an accepted order.")
+    return 0
 
 
 def place_trend_buy_order_from_signal(ig_service, signal_info):
