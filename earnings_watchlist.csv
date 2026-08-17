@@ -1,16 +1,11 @@
 symbol,earnings_datetime,active,notes
-UAL,2026-07-15 16:00,yes,United Airlines Holdings | earnings presentation 17:00 ET after market close
-NFLX,2026-07-16 16:00,yes,Netflix | earnings presentation 17:00 ET after market close
-AA,2026-07-16 16:00,yes,Alcoa Corporation | earnings presentation 17:00 ET after market close
-STLD,2026-07-20 16:30,yes,Steel Dynamics | earnings presentation 17:00 ET after market close
-IBKR,2026-07-21 16:00,yes,Interactive Brokers Group | earnings presentation 17:00 ET after market close
-APLD,2026-07-21 16:00,yes,Applied Digital Corporation | earnings presentation 17:00 ET after market close
-TSLA,2026-07-22 16:00,yes,Tesla | earnings presentation 17:00 ET after market close
-IBM,2026-07-22 16:00,yes,International Business Machines | earnings presentation 17:00 ET after market close
-INTC,2026-07-23 16:00,yes,Intel Corporation | earnings presentation 17:00 ET after market close
-AXP,2026-07-24 07:00,yes,American Express Company | earnings presentation 08:00 ET before market open
-UHS,2026-07-27 16:15,yes,Universal Health Services | earnings presentation 17:00 ET after market close
-LUMN,2026-07-28 16:00,yes,Lumen Technologies | earnings presentation 17:00 ET after market close
-SBUX,2026-07-28 16:00,yes,Starbucks Corporation | earnings presentation 17:00 ET after market close
-QCOM,2026-07-29 16:00,yes,Qualcomm Incorporated | earnings presentation 17:00 ET after market close
-RIVN,2026-07-30 16:00,yes,Rivian Automotive | earnings presentation 17:00 ET after market close
+KEYS,2026-08-18 16:00,yes,Keysight Technologies | earnings presentation 16:30 ET after market close
+NDSN,2026-08-19 16:00,yes,Nordson Corporation | earnings presentation 17:00 ET after market close
+ROST,2026-08-20 16:00,yes,Ross Stores | earnings presentation 17:00 ET after market close
+ZOOM,2026-08-25 16:00,yes,Zoom Communications | earnings presentation 17:00 ET after market close
+NVDA,2026-08-26 16:00,yes,Nvidia Corporation | earnings presentation 17:00 ET after market close
+MRVL,2026-08-27 16:00,yes,Marvell Technology | earnings presentation 17:00 ET after market close
+PANW,2026-09-01 16:00,yes,Palo Alto Networks | earnings presentation 17:00 ET after market close
+SNOW,2026-09-02 16:00,yes,Snowflake | earnings presentation 17:00 ET after market close
+DELL,2026-09-03 16:00,yes,Dell Technologies | earnings presentation 17:00 ET after market close
+LULU,2026-09-03 16:00,yes,Lululemon Athletica | earnings presentation 17:00 ET after market close
