@@ -228,46 +228,67 @@ def start_trading_scheduler():
 
 def run_dashboard_signal_cycle(tracker):
     now = datetime.now()
+    signal_candidates = []
 
-    if MARKET_OPEN_AUTO_MODE:
-        stage = get_market_open_stage(now)
-        print(f"Market-open signal cycle stage: {stage}")
-        signal_candidates = []
-        watch_items = load_market_open_watchlist()
+    market_open_candidates = run_market_open_signal_cycle(tracker, now)
+    earnings_candidates = run_earnings_signal_cycle(tracker, now)
+    signal_candidates.extend(market_open_candidates)
+    signal_candidates.extend(earnings_candidates)
 
-        if stage in [
-            "MARKET_CLOSED_WEEKEND",
-            "WAITING_FOR_MARKET_OPEN",
-            "WAITING_FOR_SIGNAL_WINDOW",
-            "MARKET_OPEN_WINDOW_COMPLETE",
-        ]:
-            log_event(
-                timestamp=datetime.now(),
-                symbol="SYSTEM",
-                event="MARKET_OPEN_STAGE",
-                notes=f"Stage={stage}; watched {len(watch_items)} symbol(s).",
-            )
-            return signal_candidates
+    log_event(
+        timestamp=datetime.now(),
+        symbol="SYSTEM",
+        event="AUTO_BUY_SCOPE",
+        notes=(
+            "Checked both tabs: "
+            f"{len(market_open_candidates)} market-open candidate(s), "
+            f"{len(earnings_candidates)} earnings candidate(s)."
+        ),
+    )
+    return signal_candidates
 
-        for item in watch_items:
-            symbol = item.symbol
-            if stage == "SAVE_BASE_PRICE":
-                tracker.save_base_price(symbol)
-            elif stage == "CHECK_MARKET_OPEN_SIGNAL":
-                signal_info = tracker.check_signal(symbol)
-                if signal_info:
-                    signal_candidates.append(signal_info)
 
-        if stage != "CHECK_MARKET_OPEN_SIGNAL":
-            log_event(
-                timestamp=datetime.now(),
-                symbol="SYSTEM",
-                event="MARKET_OPEN_STAGE",
-                notes=f"Stage={stage}; watched {len(watch_items)} symbol(s).",
-            )
+def run_market_open_signal_cycle(tracker, now):
+    stage = get_market_open_stage(now)
+    print(f"Market-open signal cycle stage: {stage}")
+    signal_candidates = []
+    watch_items = load_market_open_watchlist()
 
+    if stage in [
+        "MARKET_CLOSED_WEEKEND",
+        "WAITING_FOR_MARKET_OPEN",
+        "WAITING_FOR_SIGNAL_WINDOW",
+        "MARKET_OPEN_WINDOW_COMPLETE",
+    ]:
+        log_event(
+            timestamp=datetime.now(),
+            symbol="SYSTEM",
+            event="MARKET_OPEN_STAGE",
+            notes=f"Stage={stage}; watched {len(watch_items)} symbol(s).",
+        )
         return signal_candidates
 
+    for item in watch_items:
+        symbol = item.symbol
+        if stage == "SAVE_BASE_PRICE":
+            tracker.save_base_price(symbol)
+        elif stage == "CHECK_MARKET_OPEN_SIGNAL":
+            signal_info = tracker.check_signal(symbol)
+            if signal_info:
+                signal_candidates.append(signal_info)
+
+    if stage != "CHECK_MARKET_OPEN_SIGNAL":
+        log_event(
+            timestamp=datetime.now(),
+            symbol="SYSTEM",
+            event="MARKET_OPEN_STAGE",
+            notes=f"Stage={stage}; watched {len(watch_items)} symbol(s).",
+        )
+
+    return signal_candidates
+
+
+def run_earnings_signal_cycle(tracker, now):
     signal_candidates = []
     for item in load_watchlist():
         symbol = item.symbol
@@ -777,6 +798,7 @@ def auto_buy_status(bot_status, watchlist_rows):
         "tone": tone,
         "mode": "Trend Buy" if AUTO_TREND_BUY_TRADING else ("Signal Orders" if AUTO_SIGNAL_DEMO_TRADING else "Off"),
         "market_mode": "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings",
+        "automation_scope": "Earnings + Market Open",
         "stage": stage or "Unknown",
         "next_action": next_action,
         "bot_state": bot_status.get("state", "unknown"),
@@ -1302,9 +1324,9 @@ def api_watchlist_mode():
         timestamp=datetime.now(),
         symbol="SYSTEM",
         event="WATCHLIST_MODE_CHANGED",
-        notes=f"Dashboard watchlist mode changed to {mode}.",
+        notes=f"Dashboard view changed to {mode}. Auto-buy still checks both Earnings and Market Open.",
     )
-    return jsonify({"success": True, "message": f"Watchlist mode set to {mode}.", "data": dashboard_data()})
+    return jsonify({"success": True, "message": f"Dashboard view set to {mode}.", "data": dashboard_data()})
 
 
 @app.route("/api/manual-buy", methods=["POST"])

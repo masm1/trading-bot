@@ -538,7 +538,8 @@ function renderAutoBuyStatus(status) {
 
   const items = [
     ["Mode", details.mode || "Off", details.armed ? "good" : "danger"],
-    ["Market", details.market_mode || "-"],
+    ["View", details.market_mode || "-"],
+    ["Auto Scope", details.automation_scope || "Earnings + Market Open", "good"],
     ["Stage", readableEvent(details.stage || "-"), details.tone || "info"],
     ["Bot", readableEvent(details.bot_state || "unknown"), details.bot_state === "fresh" ? "good" : "warn"],
     ["Max Notional", money(details.max_notional_usd)],

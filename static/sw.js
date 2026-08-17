@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trading-bot-v16';
+const CACHE_NAME = 'trading-bot-v17';
 const urlsToCache = [
   '/',
   '/static/dashboard.css',
