@@ -12,6 +12,7 @@ from config import (
     MARKET_OPEN_TIMEZONE,
     MARKET_OPEN_WATCHLIST_FILE,
 )
+from mapping import EPIC_MAP
 
 PROJECT_DIR = Path(__file__).resolve().parent
 WATCHLIST_FILE = PROJECT_DIR / MARKET_OPEN_WATCHLIST_FILE
@@ -43,6 +44,9 @@ def load_market_open_watchlist():
             active = raw_active in ["yes", "y", "true", "1", "active"]
             if not active:
                 print(f"Skipping {symbol}: active is not yes.")
+                continue
+            if symbol not in EPIC_MAP:
+                print(f"Skipping {symbol}: no confirmed IG route for auto-buy.")
                 continue
 
             items.append(MarketOpenItem(symbol=symbol, active=active, notes=notes))

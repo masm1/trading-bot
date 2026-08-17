@@ -26,6 +26,7 @@ from config import (
     MIN_DISCOVERY_PRICE,
     looks_like_placeholder,
 )
+from mapping import EPIC_MAP
 
 PROJECT_DIR = Path(__file__).resolve().parent
 AUTO_WATCHLIST_FILE = PROJECT_DIR / AUTO_DISCOVERY_OUTPUT_FILE
@@ -212,6 +213,12 @@ def _select_active_candidates(candidates):
     accepted = []
     rejected = []
     for row in sorted(deduped.values(), key=lambda item: _to_float(item.get("score")) or 0, reverse=True):
+        if row["symbol"] not in EPIC_MAP:
+            row["active"] = "no"
+            row["reason"] = f"{row['reason']} No confirmed IG route for auto-buy."
+            rejected.append(row)
+            continue
+
         if row.get("source") in {"seed", "trend_seed", "manual_seed"}:
             row["active"] = "yes"
             row["reason"] = f"{row['reason']} Kept active by configuration."

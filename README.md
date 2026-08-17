@@ -221,7 +221,7 @@ The bot saves base prices during the first few minutes after open, checks signal
 
 ## Optional Auto Watchlist Discovery
 
-The dashboard can keep `auto_watchlist.csv` updated from configured core symbols plus Finnhub's IPO calendar. Core symbols stay active even if quote refresh is temporarily unavailable. IPOs are shown in Market Discovery, but they are only activated when they have a usable quote and pass the configured price/limit checks.
+The dashboard can keep `auto_watchlist.csv` updated from configured core symbols plus Finnhub's IPO calendar. Market Discovery can show broad market symbols and IPOs, but only symbols with confirmed IG EPIC mappings are activated for market-open auto-buy.
 
 ```text
 AUTO_DISCOVERY_ENABLED=true
@@ -232,7 +232,7 @@ MAX_AUTO_WATCHLIST_SYMBOLS=30
 MAX_IPO_SYMBOLS=5
 MIN_DISCOVERY_PRICE=5
 DISCOVERY_SEED_SYMBOLS=SPY:S&P 500,QQQ:Nasdaq 100,DIA:Dow 30,IWM:Russell 2000,GLD:Gold,USO:Oil
-LIVE_TREND_SYMBOLS=UAL:United Airlines Holdings,NFLX:Netflix,AA:Alcoa,STLD:Steel Dynamics,IBKR:Interactive Brokers,APLD:Applied Digital,TSLA:Tesla,IBM:IBM,INTC:Intel,AXP:American Express,UHS:Universal Health Services,LUMN:Lumen Technologies,SBUX:Starbucks,QCOM:Qualcomm,RIVN:Rivian
+LIVE_TREND_SYMBOLS=NFLX:Netflix,STLD:Steel Dynamics,IBKR:Interactive Brokers,APLD:Applied Digital,TSLA:Tesla,INTC:Intel,SBUX:Starbucks,QCOM:Qualcomm,RIVN:Rivian
 DISCOVERY_EXTRA_SYMBOLS=
 ```
 
@@ -242,7 +242,7 @@ Use `DISCOVERY_EXTRA_SYMBOLS` for names you want considered in addition to the c
 DISCOVERY_EXTRA_SYMBOLS=TSLA:Tesla,META:Meta
 ```
 
-Use `LIVE_TREND_SYMBOLS` for stocks that should stay in the market-open/trend auto-buy list even when their earnings event window is complete.
+Use `LIVE_TREND_SYMBOLS` for stocks that should stay in the market-open/trend auto-buy list even when their earnings event window is complete. A symbol still needs a confirmed IG EPIC mapping in `mapping.py` before discovery activates it for auto-buy.
 
 ## Optional Trend Buy Mode
 

@@ -95,10 +95,9 @@ LIVE_MARKET_SYMBOLS = get_env(
 LIVE_TREND_SYMBOLS = get_env(
     "LIVE_TREND_SYMBOLS",
     (
-        "UAL:United Airlines Holdings,NFLX:Netflix,AA:Alcoa,STLD:Steel Dynamics,"
-        "IBKR:Interactive Brokers,APLD:Applied Digital,TSLA:Tesla,IBM:IBM,"
-        "INTC:Intel,AXP:American Express,UHS:Universal Health Services,"
-        "LUMN:Lumen Technologies,SBUX:Starbucks,QCOM:Qualcomm,RIVN:Rivian"
+        "NFLX:Netflix,STLD:Steel Dynamics,IBKR:Interactive Brokers,"
+        "APLD:Applied Digital,TSLA:Tesla,INTC:Intel,SBUX:Starbucks,"
+        "QCOM:Qualcomm,RIVN:Rivian"
     ),
 )
 AUTO_DISCOVERY_ENABLED = get_bool_env("AUTO_DISCOVERY_ENABLED", True)
