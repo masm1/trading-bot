@@ -110,6 +110,22 @@ def run_market_open_cycle(tracker, now, stage=None):
     return signal_candidates
 
 
+def run_signal_cycle(tracker, now):
+    market_stage = get_market_open_stage(now)
+    market_candidates = run_market_open_cycle(tracker, now, market_stage)
+    earnings_candidates = run_earnings_cycle(tracker, now)
+    signal_candidates = [*market_candidates, *earnings_candidates]
+
+    primary_mode = "Market Open" if MARKET_OPEN_AUTO_MODE else "Earnings"
+    cycle_note = (
+        f" Primary view: {primary_mode}."
+        f" Market-open: {readable_market_stage(market_stage)}"
+        f" market-open candidate(s)={len(market_candidates)};"
+        f" earnings candidate(s)={len(earnings_candidates)}."
+    )
+    return signal_candidates, cycle_note
+
+
 def main():
     print("Starting Trading Bot...\n")
     create_log_files_if_missing()
@@ -129,13 +145,7 @@ def main():
             now = datetime.now()
             print(f"\nCycle at {now.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-            cycle_note = ""
-            if MARKET_OPEN_AUTO_MODE:
-                market_stage = get_market_open_stage(now)
-                signal_candidates = run_market_open_cycle(tracker, now, market_stage)
-                cycle_note = f" {readable_market_stage(market_stage)}"
-            else:
-                signal_candidates = run_earnings_cycle(tracker, now)
+            signal_candidates, cycle_note = run_signal_cycle(tracker, now)
 
             if AUTO_TREND_BUY_TRADING:
                 place_top_trend_buy_order(ig, signal_candidates)

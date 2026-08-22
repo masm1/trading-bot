@@ -202,19 +202,16 @@ MARKET_OPEN_CHECK_END_MINUTES=90
 Then edit:
 
 ```text
-market_open_watchlist.csv
+auto_watchlist.csv
 ```
 
-Use the active symbols you want considered:
+Use active symbols that have confirmed IG EPIC mappings in `mapping.py`:
 
 ```text
 symbol,active,notes
-SPY,yes,Market open auto candidate
-QQQ,yes,Market open auto candidate
-DIA,yes,Market open auto candidate
-IWM,yes,Market open auto candidate
-GLD,yes,Market open auto candidate
-USO,yes,Market open auto candidate
+NFLX,yes,Market open auto candidate
+TSLA,yes,Market open auto candidate
+QCOM,yes,Market open auto candidate
 ```
 
 The bot saves base prices during the first few minutes after open, checks signals from 15 to 90 minutes after open, ranks eligible signals, and sends no more than `MAX_SIGNAL_DEMO_TRADES_PER_ROUND` demo orders.
